@@ -25,7 +25,7 @@ AALSCharacter::AALSCharacter(const FObjectInitializer& ObjectInitializer)
 	AIControllerClass = AALSAIController::StaticClass();
 }
 
-void AALSCharacter::ClearHeldObject()
+void AALSCharacter::ClearHeldObject() const
 {
 	StaticMesh->SetStaticMesh(nullptr);
 	SkeletalMesh->SetSkeletalMesh(nullptr);
@@ -33,7 +33,7 @@ void AALSCharacter::ClearHeldObject()
 }
 
 void AALSCharacter::AttachToHand(UStaticMesh* NewStaticMesh, USkeletalMesh* NewSkeletalMesh, UClass* NewAnimClass,
-                                 bool bLeftHand, FVector Offset)
+                                 bool bLeftHand, FVector Offset) const
 {
 	ClearHeldObject();
 
@@ -79,9 +79,9 @@ void AALSCharacter::RagdollEnd()
 
 ECollisionChannel AALSCharacter::GetThirdPersonTraceParams(FVector& TraceOrigin, float& TraceRadius)
 {
-	FName CameraSocketName = bRightShoulder ? TEXT("TP_CameraTrace_R") : TEXT("TP_CameraTrace_L");
+	const FName CameraSocketName = bRightShoulder ? TEXT("TP_CameraTrace_R") : TEXT("TP_CameraTrace_L");
 	TraceOrigin = GetMesh()->GetSocketLocation(CameraSocketName);
-	float Pelvis_Z_Offset = GetMesh()->GetSocketTransform(TEXT("pelvis")).GetLocation().Z - 96;
+	const float Pelvis_Z_Offset = GetMesh()->GetSocketTransform(TEXT("pelvis")).GetLocation().Z - 96; // @TODO: Assuming this 96 comes from the height of the character, consider promoting to a variable to accomodate taller/shorter characters?
 	TraceOrigin.Z += Pelvis_Z_Offset;
 	TraceRadius = 15.0f;
 	return ECC_Camera;

@@ -29,9 +29,9 @@ class ALSV4_CPP_API UALSCharacterAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 
 public:
-	void NativeInitializeAnimation() override;
+	virtual void NativeInitializeAnimation() override;
 
-	void NativeUpdateAnimation(float DeltaSeconds) override;
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 	UFUNCTION(BlueprintCallable)
 	void PlayTransition(const FALSDynamicMontageParams& Parameters);
@@ -121,18 +121,23 @@ private:
 
 	/** Foot IK */
 
-	void SetFootLocking(float DeltaSeconds, FName EnableFootIKCurve, FName FootLockCurve, FName IKFootBone,
-	                    float& CurFootLockAlpha, bool& UseFootLockCurve,
-	                    FVector& CurFootLockLoc, FRotator& CurFootLockRot);
+	void SetFootLocking(float DeltaSeconds,
+						FName EnableFootIKCurve,
+						FName FootLockCurve,
+						FName IKFootBone,
+						float& CurFootLockAlpha,
+						bool& UseFootLockCurve,
+						FVector& CurFootLockLoc,
+						FRotator& CurFootLockRot) const;
 
-	void SetFootLockOffsets(float DeltaSeconds, FVector& LocalLoc, FRotator& LocalRot);
+	void SetFootLockOffsets(float DeltaSeconds, FVector& LocalLoc, FRotator& LocalRot) const;
 
 	void SetPelvisIKOffset(float DeltaSeconds, FVector FootOffsetLTarget, FVector FootOffsetRTarget);
 
 	void ResetIKOffsets(float DeltaSeconds);
 
 	void SetFootOffsets(float DeltaSeconds, FName EnableFootIKCurve, FName IKFootBone, FName RootBone,
-	                    FVector& CurLocationTarget, FVector& CurLocationOffset, FRotator& CurRotationOffset);
+	                    FVector& CurLocationTarget, FVector& CurLocationOffset, FRotator& CurRotationOffset) const;
 
 	/** Grounded */
 

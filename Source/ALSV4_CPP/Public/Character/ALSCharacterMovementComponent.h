@@ -48,7 +48,7 @@ public:
 
 	virtual void UpdateFromCompressedFlags(uint8 Flags) override;
 	virtual class FNetworkPredictionData_Client* GetPredictionData_Client() const override;
-	void OnMovementUpdated(float DeltaTime, const FVector& OldLocation, const FVector& OldVelocity);
+	virtual void OnMovementUpdated(float DeltaTime, const FVector& OldLocation, const FVector& OldVelocity) override;
 
 
 	// Movement Settings Variables

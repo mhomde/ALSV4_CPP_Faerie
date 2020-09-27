@@ -86,7 +86,7 @@ struct FALSCameraStateSettings
 };
 
 USTRUCT(BlueprintType)
-struct FALSMantleAsset
+struct FALSMantleAsset : public FTableRowBase
 {
 	GENERATED_BODY()
 
@@ -180,7 +180,7 @@ struct FALSMovementSettings
 	UPROPERTY(EditAnywhere)
 	UCurveFloat* RotationRateCurve = nullptr;
 
-	float GetSpeedForGait(EALSGait Gait)
+	float GetSpeedForGait(EALSGait Gait) const
 	{
 		switch (Gait)
 		{

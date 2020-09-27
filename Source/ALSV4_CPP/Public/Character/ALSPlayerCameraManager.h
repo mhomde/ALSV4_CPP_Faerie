@@ -39,7 +39,7 @@ protected:
 	virtual void UpdateViewTargetInternal(FTViewTarget& OutVT, float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	FVector CalculateAxisIndependentLag(
+	static FVector CalculateAxisIndependentLag(
 		FVector CurrentLocation, FVector TargetLocation, FRotator CameraRotation, FVector LagSpeeds, float DeltaTime);
 
 	UFUNCTION(BlueprintCallable)
@@ -53,6 +53,7 @@ public:
 	USkeletalMeshComponent* CameraBehavior = nullptr;
 
 protected:
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FVector RootLocation;
 

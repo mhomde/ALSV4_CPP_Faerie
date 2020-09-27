@@ -29,7 +29,13 @@ private:
 	bool Grounded_ = false;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
-	bool InAir_ = false;
+	bool Freefall_ = false;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	bool Flight_ = false;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	bool Swimming_ = false;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	bool Mantling_ = false;
@@ -41,11 +47,13 @@ public:
 	FALSMovementState() {}
 	FALSMovementState(const EALSMovementState InitialState) { *this = InitialState; }
 
-	FORCEINLINE const bool& None()     const { return None_; }
+	FORCEINLINE const bool& None() const { return None_; }
 	FORCEINLINE const bool& Grounded() const { return Grounded_; }
-	FORCEINLINE const bool& InAir()    const { return InAir_; }
+	FORCEINLINE const bool& Freefall() const { return Freefall_; }
+	FORCEINLINE const bool& Flight() const { return Flight_; }
+	FORCEINLINE const bool& Swimming() const { return Swimming_; }
 	FORCEINLINE const bool& Mantling() const { return Mantling_; }
-	FORCEINLINE const bool& Ragdoll()  const { return Ragdoll_; }
+	FORCEINLINE const bool& Ragdoll() const { return Ragdoll_; }
 
 	FORCEINLINE operator EALSMovementState() const { return State; }
 
@@ -54,7 +62,9 @@ public:
 		State = NewState;
 		None_ = State == EALSMovementState::None;
 		Grounded_ = State == EALSMovementState::Grounded;
-		InAir_ = State == EALSMovementState::InAir;
+		Freefall_ = State == EALSMovementState::Freefall;
+		Swimming_ = State == EALSMovementState::Swimming;
+		Flight_ = State == EALSMovementState::Flight;
 		Mantling_ = State == EALSMovementState::Mantling;
 		Ragdoll_ = State == EALSMovementState::Ragdoll;
 	}
@@ -79,7 +89,7 @@ public:
 	FALSStance() {}
 	FALSStance(const EALSStance InitialStance) { *this = InitialStance; }
 
-	FORCEINLINE const bool& Standing()     const { return Standing_; }
+	FORCEINLINE const bool& Standing() const { return Standing_; }
 	FORCEINLINE const bool& Crouching() const { return Crouching_; }
 
 	FORCEINLINE operator EALSStance() const { return Stance; }
@@ -250,7 +260,7 @@ public:
 	{
 		Gait = NewGait;
 		Walking_ = Gait == EALSGait::Walking;
-		Running_ = Gait == EALSGait::Running,
+		Running_ = Gait == EALSGait::Running;
 		Sprinting_ = Gait == EALSGait::Sprinting;
 	}
 };

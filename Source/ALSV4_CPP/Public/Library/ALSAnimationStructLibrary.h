@@ -9,10 +9,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Runtime/Engine/Classes/Animation/AnimSequenceBase.h"
 #include "ALSCharacterEnumLibrary.h"
-
-
 #include "ALSAnimationStructLibrary.generated.h"
 
 
@@ -329,7 +326,7 @@ struct FALSAnimGraphFootIK
 	float FootLock_R_Alpha = 0.0f;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
-  bool UseFootLockCurve_L;
+	bool UseFootLockCurve_L;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
 	bool UseFootLockCurve_R;
@@ -338,10 +335,13 @@ struct FALSAnimGraphFootIK
 	FVector FootLock_L_Location;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
-	FVector TargetFootLock_R_Location;
+	FVector TargetFootLock_L_Location;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
 	FVector FootLock_R_Location;
+	
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	FVector TargetFootLock_R_Location;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
 	FRotator TargetFootLock_L_Rotation;

@@ -8,8 +8,6 @@
 
 #include "Character/ALSPlayerCameraManager.h"
 
-
-#include "DrawDebugHelpers.h"
 #include "Character/ALSBaseCharacter.h"
 #include "Character/Animation/ALSPlayerCameraBehavior.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -41,7 +39,7 @@ void AALSPlayerCameraManager::OnPossess(AALSBaseCharacter* NewCharacter)
 	}
 }
 
-float AALSPlayerCameraManager::GetCameraBehaviorParam(FName CurveName) const
+float AALSPlayerCameraManager::GetCameraBehaviorParam(FName const CurveName) const
 {
 	UAnimInstance* Inst = CameraBehavior->GetAnimInstance();
 	if (Inst)
@@ -51,7 +49,7 @@ float AALSPlayerCameraManager::GetCameraBehaviorParam(FName CurveName) const
 	return 0.0f;
 }
 
-void AALSPlayerCameraManager::UpdateViewTargetInternal(FTViewTarget& OutVT, float DeltaTime)
+void AALSPlayerCameraManager::UpdateViewTargetInternal(FTViewTarget& OutVT, float const DeltaTime)
 {
 	// Partially taken from base class
 
@@ -159,7 +157,7 @@ bool AALSPlayerCameraManager::CustomCameraBehavior(float DeltaTime, FVector& Loc
 
 	if (HitResult.bBlockingHit)
 	{
-		TargetCameraLocation += (HitResult.Location - HitResult.TraceEnd);
+		TargetCameraLocation += HitResult.Location - HitResult.TraceEnd;
 	}
 
 	// Step 7: Draw Debug Shapes.
