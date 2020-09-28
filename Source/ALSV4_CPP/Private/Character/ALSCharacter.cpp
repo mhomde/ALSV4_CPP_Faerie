@@ -81,8 +81,6 @@ ECollisionChannel AALSCharacter::GetThirdPersonTraceParams(FVector& TraceOrigin,
 {
 	const FName CameraSocketName = bRightShoulder ? TEXT("TP_CameraTrace_R") : TEXT("TP_CameraTrace_L");
 	TraceOrigin = GetMesh()->GetSocketLocation(CameraSocketName);
-	const float Pelvis_Z_Offset = GetMesh()->GetSocketTransform(TEXT("pelvis")).GetLocation().Z - 96; // @TODO: Assuming this 96 comes from the height of the character, consider promoting to a variable to accomodate taller/shorter characters?
-	TraceOrigin.Z += Pelvis_Z_Offset;
 	TraceRadius = 15.0f;
 	return ECC_Camera;
 }

@@ -383,4 +383,3 @@ public:
 		Roll_ = State == EALSGroundedEntryState::Roll;
 	}
 };
-

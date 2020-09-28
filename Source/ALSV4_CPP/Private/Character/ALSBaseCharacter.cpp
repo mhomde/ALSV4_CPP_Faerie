@@ -21,10 +21,11 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
+#include "Logging/TokenizedMessage.h"
 #include "Net/UnrealNetwork.h"
 
 AALSBaseCharacter::AALSBaseCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer.SetDefaultSubobjectClass<UALSCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UALSCharacterMovementComponent>(CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = true;
 	MantleTimeline = CreateDefaultSubobject<UTimelineComponent>(FName(TEXT("MantleTimeline")));
@@ -94,7 +95,7 @@ void AALSBaseCharacter::BeginPlay()
 	TimelineFinished.BindUFunction(this, FName(TEXT("MantleEnd")));
 	MantleTimeline->SetTimelineFinishedFunc(TimelineFinished);
 	MantleTimeline->SetLooping(false);
-	MantleTimeline->SetTimelineLengthMode(ETimelineLengthMode::TL_TimelineLength);
+	MantleTimeline->SetTimelineLengthMode(TL_TimelineLength);
 	MantleTimeline->AddInterpFloat(MantleTimelineCurve, TimelineUpdated);
 
 	// Make sure the mesh and animbp update after the CharacterBP to ensure it gets the most recent values.
@@ -1142,8 +1143,8 @@ void AALSBaseCharacter::UpdateDynamicMovementSettings(EALSGait AllowedGait)
 			MyCharacterMovementComponent->SetMaxWalkingSpeed(NewMaxSpeed);
 		}
 		if (GetCharacterMovement()->MaxAcceleration != CurveVec.X
-		  || GetCharacterMovement()->BrakingDecelerationWalking != CurveVec.Y
-		  || GetCharacterMovement()->GroundFriction != CurveVec.Z)
+			|| GetCharacterMovement()->BrakingDecelerationWalking != CurveVec.Y
+			|| GetCharacterMovement()->GroundFriction != CurveVec.Z)
 		{
 			MyCharacterMovementComponent->SetMovementSettings(CurveVec);
 		}
