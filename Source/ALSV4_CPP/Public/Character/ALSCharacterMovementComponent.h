@@ -67,13 +67,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Movement Settings")
 	void SetMaxWalkingSpeed(float NewMaxWalkSpeed);
 
-	UFUNCTION(reliable, Server, WithValidation)
+	UFUNCTION(Reliable, Server, WithValidation)
 	void Server_SetMaxWalkingSpeed(const float NewMaxWalkSpeed);
 
 	// Set Movement Settings (Called from the owning client)
 	UFUNCTION(BlueprintCallable, Category = "Movement Settings")
 	void SetMovementSettings(FVector NewMovementSettings);
 
-	UFUNCTION(reliable, Server, WithValidation)
+	UFUNCTION(Reliable, Server, WithValidation)
 	void Server_SetMovementSettings(const FVector NewMovementSettings);
 };

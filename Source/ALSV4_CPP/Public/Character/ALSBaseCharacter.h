@@ -144,10 +144,10 @@ public:
 
 	/** Rolling Montage Play Replication*/
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "ALS|Character States")
-	void Server_PlayMontage(UAnimMontage* montage, float track);
+	void Server_PlayMontage(UAnimMontage* Montage, float Track);
 
 	UFUNCTION(BlueprintCallable, NetMulticast, Reliable, Category = "ALS|Character States")
-	void Multicast_PlayMontage(UAnimMontage* montage, float track);
+	void Multicast_PlayMontage(UAnimMontage* Montage, float Track);
 
 	/** Mantling*/
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "ALS|Character States")
@@ -257,8 +257,8 @@ public:
 
 	/** BP implementable function that called when A Montage starts, e.g. during rolling */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "ALS|Movement System")
-	void Replicated_PlayMontage(UAnimMontage* montage, float track);
-	virtual void Replicated_PlayMontage_Implementation(UAnimMontage* montage, float track);
+	void Replicated_PlayMontage(UAnimMontage* Montage, float Track);
+	virtual void Replicated_PlayMontage_Implementation(UAnimMontage* Montage, float Track);
 
 	/** Implement on BP to get required roll animation according to character's state */
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "ALS|Movement System")

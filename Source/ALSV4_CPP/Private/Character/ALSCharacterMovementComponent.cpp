@@ -79,8 +79,9 @@ uint8 UALSCharacterMovementComponent::FSavedMove_My::GetCompressedFlags() const
 	return Result;
 }
 
-bool UALSCharacterMovementComponent::FSavedMove_My::CanCombineWith(const FSavedMovePtr& NewMove, ACharacter* Character,
-                                                                   float MaxDelta) const
+bool UALSCharacterMovementComponent::FSavedMove_My::CanCombineWith(const FSavedMovePtr& NewMove,
+																   ACharacter* Character,
+                                                                   const float MaxDelta) const
 {
 	// Set which moves can be combined together. This will depend on the bit flags that are used.	
 	if (bSavedRequestMovementSettingsChange != ((FSavedMove_My*)&NewMove)->bSavedRequestMovementSettingsChange)
@@ -91,7 +92,7 @@ bool UALSCharacterMovementComponent::FSavedMove_My::CanCombineWith(const FSavedM
 	return Super::CanCombineWith(NewMove, Character, MaxDelta);
 }
 
-void UALSCharacterMovementComponent::FSavedMove_My::SetMoveFor(ACharacter* Character, float InDeltaTime, FVector const& NewAccel,
+void UALSCharacterMovementComponent::FSavedMove_My::SetMoveFor(ACharacter* Character, const float InDeltaTime, FVector const& NewAccel,
                                                                class FNetworkPredictionData_Client_Character& ClientData)
 {
 	Super::SetMoveFor(Character, InDeltaTime, NewAccel, ClientData);
@@ -134,7 +135,7 @@ void UALSCharacterMovementComponent::Server_SetMaxWalkingSpeed_Implementation(co
 	MyNewMaxWalkSpeed = NewMaxWalkSpeed;
 }
 
-void UALSCharacterMovementComponent::SetMaxWalkingSpeed(float NewMaxWalkSpeed)
+void UALSCharacterMovementComponent::SetMaxWalkingSpeed(const float NewMaxWalkSpeed)
 {
 	if (PawnOwner->IsLocallyControlled())
 	{
