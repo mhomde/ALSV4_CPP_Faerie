@@ -1311,8 +1311,11 @@ void AALSBaseCharacter::MantleStart(const float MantleHeight, const FALSComponen
 	                                                          {MantleAsset.LowPlayRate, MantleAsset.HighPlayRate}, MantleHeight);
 
 	// Step 2: Convert the world space target to the mantle component's local space for use in moving objects.
-	MantleLedgeLS.Component = MantleLedgeWS.Component;
-	MantleLedgeLS.Transform = MantleLedgeWS.Transform * MantleLedgeWS.Component->GetComponentToWorld().Inverse();
+	if (MantleLedgeWS.Component) // This was throwing access none on the client-side
+	{
+		MantleLedgeLS.Component = MantleLedgeWS.Component;
+		MantleLedgeLS.Transform = MantleLedgeWS.Transform * MantleLedgeWS.Component->GetComponentTransform().Inverse();
+	}
 
 	// Step 3: Set the Mantle Target and calculate the Starting Offset
 	// (offset amount between the actor and target transform).

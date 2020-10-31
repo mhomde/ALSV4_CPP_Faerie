@@ -9,12 +9,12 @@ using UnrealBuildTool;
 
 public class ALSV4_CPP : ModuleRules
 {
-	public ALSV4_CPP(ReadOnlyTargetRules Target) : base(Target)
+	public ALSV4_CPP(ReadOnlyTargetRules target) : base(target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] {"Core", "CoreUObject", "Engine", "InputCore", "NavigationSystem", "AIModule", "GameplayTasks"});
+		PublicDependencyModuleNames.AddRange(new [] {"Core", "CoreUObject", "Engine", "InputCore", "NavigationSystem", "AIModule", "GameplayTasks"});
 
-		PrivateDependencyModuleNames.AddRange(new string[] {"Slate", "SlateCore"});
+		PrivateDependencyModuleNames.AddRange(new [] {"Slate", "SlateCore"});
 	}
 }
