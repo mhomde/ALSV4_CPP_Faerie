@@ -298,7 +298,4 @@ private:
 	FTimerHandle OnJumpedTimer;
 
 	bool bCanPlayDynamicTransition = true;
-
-	FVector FootOffsetLTargetCached;
-	FVector FootOffsetRTargetCached;
 };

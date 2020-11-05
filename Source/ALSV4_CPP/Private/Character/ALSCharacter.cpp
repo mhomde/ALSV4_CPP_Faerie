@@ -33,7 +33,7 @@ void AALSCharacter::ClearHeldObject() const
 }
 
 void AALSCharacter::AttachToHand(UStaticMesh* NewStaticMesh, USkeletalMesh* NewSkeletalMesh, UClass* NewAnimClass,
-                                 bool bLeftHand, FVector Offset) const
+                                 const bool bLeftHand, const FVector Offset) const
 {
 	ClearHeldObject();
 
@@ -88,7 +88,7 @@ ECollisionChannel AALSCharacter::GetThirdPersonTraceParams(FVector& TraceOrigin,
 FTransform AALSCharacter::GetThirdPersonPivotTarget()
 {
 	return FTransform(GetActorRotation(),
-	                  (GetMesh()->GetSocketLocation(TEXT("Head")) + GetMesh()->GetSocketLocation(TEXT("Root"))) / 2.0f,
+	                  (GetMesh()->GetSocketLocation(TEXT("Head")) + GetMesh()->GetSocketLocation(TEXT("root"))) / 2.0f,
 	                  FVector::OneVector);
 }
 

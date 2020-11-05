@@ -467,7 +467,7 @@ void AALSBaseCharacter::EventOnLanded()
 		ReplicatedRagdollStart();
 	}
 	
-	else if (bBreakfallOnLand && VelZ >= BreakfallOnLandVelocity || bBreakFallNextLanding)
+	else if (bBreakfallOnLand && (VelZ >= BreakfallOnLandVelocity || bBreakFallNextLanding))
 	{
 		OnBreakfall();
 		bBreakFallNextLanding = false;

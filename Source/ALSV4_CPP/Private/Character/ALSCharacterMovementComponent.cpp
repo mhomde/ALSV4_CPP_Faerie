@@ -1,7 +1,7 @@
 // Project:         Advanced Locomotion System V4 on C++
 // Source Code:     https://github.com/dyanikoglu/ALSV4_CPP
 // Original Author: Haziq Fadhil
-// Contributors:    
+// Contributors:    Doga Can Yanikoglu 
 
 
 #include "Character/ALSCharacterMovementComponent.h"
@@ -12,7 +12,7 @@ UALSCharacterMovementComponent::UALSCharacterMovementComponent(const FObjectInit
 {
 }
 
-void UALSCharacterMovementComponent::OnMovementUpdated(float DeltaTime, const FVector& OldLocation, const FVector& OldVelocity)
+void UALSCharacterMovementComponent::OnMovementUpdated(const float DeltaTime, const FVector& OldLocation, const FVector& OldVelocity)
 {
 	Super::OnMovementUpdated(DeltaTime, OldLocation, OldVelocity);
 
@@ -37,7 +37,7 @@ void UALSCharacterMovementComponent::OnMovementUpdated(float DeltaTime, const FV
 	}
 }
 
-void UALSCharacterMovementComponent::UpdateFromCompressedFlags(uint8 Flags) // Client only
+void UALSCharacterMovementComponent::UpdateFromCompressedFlags(const uint8 Flags) // Client only
 {
 	Super::UpdateFromCompressedFlags(Flags);
 
@@ -46,7 +46,7 @@ void UALSCharacterMovementComponent::UpdateFromCompressedFlags(uint8 Flags) // C
 
 class FNetworkPredictionData_Client* UALSCharacterMovementComponent::GetPredictionData_Client() const
 {
-	check(PawnOwner != NULL);
+	check(PawnOwner != nullptr);
 
 	if (!ClientPredictionData)
 	{
@@ -159,7 +159,7 @@ void UALSCharacterMovementComponent::Server_SetMovementSettings_Implementation(c
 	bRequestMovementSettingsChange = true;
 }
 
-void UALSCharacterMovementComponent::SetMovementSettings(FVector NewMovementSettings)
+void UALSCharacterMovementComponent::SetMovementSettings(const FVector NewMovementSettings)
 {
 	if (PawnOwner->IsLocallyControlled())
 	{

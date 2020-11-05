@@ -1,7 +1,7 @@
 // Project:         Advanced Locomotion System V4 on C++
 // Source Code:     https://github.com/dyanikoglu/ALSV4_CPP
 // Original Author: Haziq Fadhil
-// Contributors:    
+// Contributors:    Doga Can Yanikoglu
 
 #pragma once
 
