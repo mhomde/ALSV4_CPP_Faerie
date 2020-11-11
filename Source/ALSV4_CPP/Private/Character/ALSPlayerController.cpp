@@ -12,7 +12,7 @@
 
 void AALSPlayerController::OnRestartPawn(APawn* NewPawn)
 {
-	PossessedCharacter = Cast<AALSBaseCharacter>(NewPawn);
+	PossessedCharacter = Cast<AALSPlayerCharacter>(NewPawn);
 	check(PossessedCharacter);
 
 	// Call "OnPossess" in Player Camera Manager when possessing a pawn

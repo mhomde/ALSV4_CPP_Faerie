@@ -7,6 +7,7 @@
 
 
 #include "Library/ALSMathLibrary.h"
+#include "ALS_Settings.h"
 #include "Components/CapsuleComponent.h"
 #include "Library/ALSCharacterStructLibrary.h"
 
@@ -22,10 +23,12 @@ FTransform UALSMathLibrary::MantleComponentLocalToWorld(const FALSComponentAndTr
 TPair<float, float> UALSMathLibrary::FixDiagonalGamepadValues(const float Y, const float X)
 {
 	float ResultY = Y * FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 0.6f),
-	                                                      FVector2D(1.0f, 1.2f), FMath::Abs(X));
+	                                                      FVector2D(1.0f, 1.2f),
+	                                                      FMath::Abs(X));
 	ResultY = FMath::Clamp(ResultY, -1.0f, 1.0f);
 	float ResultX = X * FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 0.6f),
-	                                                      FVector2D(1.0f, 1.2f), FMath::Abs(Y));
+														  FVector2D(1.0f, 1.2f),
+	                                                      FMath::Abs(Y));
 	ResultX = FMath::Clamp(ResultX, -1.0f, 1.0f);
 	return TPair<float, float>(ResultY, ResultX);
 }
@@ -43,7 +46,7 @@ FVector UALSMathLibrary::GetCapsuleLocationFromBase(FVector BaseLocation, const 
 	return BaseLocation;
 }
 
-bool UALSMathLibrary::CapsuleHasRoomCheck(UCapsuleComponent* Capsule, FVector TargetLocation, float HeightOffset,
+bool UALSMathLibrary::CapsuleHasRoomCheck(UCapsuleComponent* Capsule, const FVector TargetLocation, const float HeightOffset,
                                           float RadiusOffset)
 {
 	// Perform a trace to see if the capsule has room to be at the target location.
@@ -61,13 +64,17 @@ bool UALSMathLibrary::CapsuleHasRoomCheck(UCapsuleComponent* Capsule, FVector Ta
 	Params.AddIgnoredActor(Capsule->GetOwner());
 
 	FHitResult HitResult;
-	World->SweepSingleByProfile(HitResult, TraceStart, TraceEnd, FQuat::Identity,
-	                            FName(TEXT("ALS_Character")), FCollisionShape::MakeSphere(Radius), Params);
+	World->SweepSingleByProfile(HitResult,
+									 TraceStart,
+									 TraceEnd,
+									 FQuat::Identity,
+									 UALS_Settings::Get()->ALS_Profile,
+									 FCollisionShape::MakeSphere(Radius), Params);
 
 	return !(HitResult.bBlockingHit || HitResult.bStartPenetrating);
 }
 
-bool UALSMathLibrary::AngleInRange(float Angle, float MinAngle, float MaxAngle, float Buffer, bool IncreaseBuffer)
+bool UALSMathLibrary::AngleInRange(const float Angle, const float MinAngle, const float MaxAngle, const float Buffer, const bool IncreaseBuffer)
 {
 	if (IncreaseBuffer)
 	{
@@ -76,8 +83,13 @@ bool UALSMathLibrary::AngleInRange(float Angle, float MinAngle, float MaxAngle, 
 	return Angle >= MinAngle + Buffer && Angle <= MaxAngle - Buffer;
 }
 
-EALSMovementDirection UALSMathLibrary::CalculateQuadrant(EALSMovementDirection Current, float FRThreshold, float FLThreshold,
-                                                         float BRThreshold, float BLThreshold, float Buffer, float Angle)
+EALSMovementDirection UALSMathLibrary::CalculateQuadrant(const EALSMovementDirection Current,
+														 const float FRThreshold,
+														 const float FLThreshold,
+                                                         const float BRThreshold,
+                                                         const float BLThreshold,
+                                                         const float Buffer,
+                                                         const float Angle)
 {
 	// Take the input angle and determine its quadrant (direction). Use the current Movement Direction to increase or
 	// decrease the buffers on the angle ranges for each quadrant.
@@ -86,18 +98,15 @@ EALSMovementDirection UALSMathLibrary::CalculateQuadrant(EALSMovementDirection C
 	{
 		return EALSMovementDirection::Forward;
 	}
-
 	if (AngleInRange(Angle, FRThreshold, BRThreshold, Buffer,
 	                 Current != EALSMovementDirection::Right || Current != EALSMovementDirection::Left))
 	{
 		return EALSMovementDirection::Right;
 	}
-
 	if (AngleInRange(Angle, BLThreshold, FLThreshold, Buffer,
 	                 Current != EALSMovementDirection::Right || Current != EALSMovementDirection::Left))
 	{
 		return EALSMovementDirection::Left;
 	}
-
 	return EALSMovementDirection::Backward;
 }

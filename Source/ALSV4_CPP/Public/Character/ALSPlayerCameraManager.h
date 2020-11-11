@@ -12,7 +12,7 @@
 #include "Camera/PlayerCameraManager.h"
 #include "ALSPlayerCameraManager.generated.h"
 
-class AALSBaseCharacter;
+class AALSPlayerCharacter;
 
 /**
  * Player camera manager class
@@ -26,7 +26,7 @@ public:
 	AALSPlayerCameraManager();
 
 	UFUNCTION(BlueprintCallable)
-	void OnPossess(AALSBaseCharacter* NewCharacter);
+	void OnPossess(AALSPlayerCharacter* NewCharacter);
 
 	UFUNCTION(BlueprintCallable)
 	float GetCameraBehaviorParam(FName CurveName) const;
@@ -39,39 +39,41 @@ protected:
 	virtual void UpdateViewTargetInternal(FTViewTarget& OutVT, float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	static FVector CalculateAxisIndependentLag(
-		FVector CurrentLocation, FVector TargetLocation, FRotator CameraRotation, FVector LagSpeeds, float DeltaTime);
+	static FVector CalculateAxisIndependentLag(FVector CurrentLocation,
+											   FVector TargetLocation,
+											   FRotator CameraRotation,
+											   FVector LagSpeeds,
+											   float DeltaTime);
 
 	UFUNCTION(BlueprintCallable)
 	bool CustomCameraBehavior(float DeltaTime, FVector& Location, FRotator& Rotation, float& FOV);
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	AALSBaseCharacter* ControlledCharacter = nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+	AALSPlayerCharacter* ControlledCharacter = nullptr;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	USkeletalMeshComponent* CameraBehavior = nullptr;
 
 protected:
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ALS Player Camera Manager")
 	FVector RootLocation;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ALS Player Camera Manager")
 	FTransform SmoothedPivotTarget;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ALS Player Camera Manager")
 	FVector PivotLocation;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ALS Player Camera Manager")
 	FVector TargetCameraLocation;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ALS Player Camera Manager")
 	FRotator TargetCameraRotation;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS Player Camera Manager")
 	FRotator DebugViewRotation;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS Player Camera Manager")
 	FVector DebugViewOffset;
 };

@@ -7,8 +7,7 @@
 
 
 #include "Character/ALSPlayerCameraManager.h"
-
-#include "Character/ALSBaseCharacter.h"
+#include "Character/ALSPlayerCharacter.h"
 #include "Character/Animation/ALSPlayerCameraBehavior.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -19,7 +18,7 @@ AALSPlayerCameraManager::AALSPlayerCameraManager()
 	CameraBehavior->bHiddenInGame = true;
 }
 
-void AALSPlayerCameraManager::OnPossess(AALSBaseCharacter* NewCharacter)
+void AALSPlayerCameraManager::OnPossess(AALSPlayerCharacter* NewCharacter)
 {
 	// Set "Controlled Pawn" when Player Controller Possesses new character. (called from Player Controller)
 	check(NewCharacter);
@@ -39,7 +38,7 @@ void AALSPlayerCameraManager::OnPossess(AALSBaseCharacter* NewCharacter)
 	}
 }
 
-float AALSPlayerCameraManager::GetCameraBehaviorParam(FName const CurveName) const
+float AALSPlayerCameraManager::GetCameraBehaviorParam(const FName CurveName) const
 {
 	UAnimInstance* Inst = CameraBehavior->GetAnimInstance();
 	if (Inst)
@@ -49,7 +48,7 @@ float AALSPlayerCameraManager::GetCameraBehaviorParam(FName const CurveName) con
 	return 0.0f;
 }
 
-void AALSPlayerCameraManager::UpdateViewTargetInternal(FTViewTarget& OutVT, float const DeltaTime)
+void AALSPlayerCameraManager::UpdateViewTargetInternal(FTViewTarget& OutVT, const float DeltaTime)
 {
 	// Partially taken from base class
 
@@ -68,8 +67,11 @@ void AALSPlayerCameraManager::UpdateViewTargetInternal(FTViewTarget& OutVT, floa
 	}
 }
 
-FVector AALSPlayerCameraManager::CalculateAxisIndependentLag(FVector CurrentLocation, FVector TargetLocation,
-                                                             FRotator CameraRotation, FVector LagSpeeds, float DeltaTime)
+FVector AALSPlayerCameraManager::CalculateAxisIndependentLag(const FVector CurrentLocation,
+															 const FVector TargetLocation,
+															 FRotator CameraRotation,
+															 const FVector LagSpeeds,
+															 const float DeltaTime)
 {
 	CameraRotation.Roll = 0.0f;
 	CameraRotation.Pitch = 0.0f;
@@ -157,7 +159,7 @@ bool AALSPlayerCameraManager::CustomCameraBehavior(float DeltaTime, FVector& Loc
 
 	if (HitResult.IsValidBlockingHit())
 	{
-		TargetCameraLocation += HitResult.Location - HitResult.TraceEnd;
+		TargetCameraLocation += (HitResult.Location - HitResult.TraceEnd);
 	}
 
 	// Step 7: Draw Debug Shapes.

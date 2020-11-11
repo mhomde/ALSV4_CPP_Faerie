@@ -5,7 +5,6 @@
 // Original Author: Doğa Can Yanıkoğlu
 // Contributors:    Haziq Fadhil
 
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -14,8 +13,6 @@
 #include "Library/ALSCharacterStructLibrary.h"
 #include "Engine/DataTable.h"
 #include "GameFramework/Character.h"
-#include "Kismet/KismetSystemLibrary.h"
-
 #include "ALSBaseCharacter.generated.h"
 
 class UTimelineComponent;
@@ -27,7 +24,7 @@ enum class EVisibilityBasedAnimTickOption : uint8;
 /*
  * Base character class
  */
-UCLASS(BlueprintType)
+UCLASS(Abstract)
 class ALSV4_CPP_API AALSBaseCharacter : public ACharacter
 {
 	GENERATED_BODY()
@@ -47,6 +44,15 @@ public:
 	virtual void Restart() override;
 
 	virtual void PostInitializeComponents() override;
+
+	virtual void NotifyHit(UPrimitiveComponent* MyComp,
+						   AActor* Other,
+						   UPrimitiveComponent* OtherComp,
+						   bool bSelfMoved,
+						   FVector HitLocation,
+						   FVector HitNormal,
+						   FVector NormalImpulse,
+						   const FHitResult& Hit) override;
 
 	/** Ragdoll System */
 
@@ -101,20 +107,14 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "ALS|Character States")
 	void Server_SetRotationMode(EALSRotationMode NewRotationMode);
 
+	UFUNCTION(BlueprintCallable, Category = "ALS|Input")
+    void SetFlightMode(EALSFlightMode NewFlightMode);
+
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "ALS|Character States")
 	void Server_SetFlightMode(EALSFlightMode NewFlightMode);
 
 	UFUNCTION(BlueprintGetter, Category = "ALS|Character States")
 	EALSRotationMode GetRotationMode() const { return RotationMode; }
-
-	UFUNCTION(BlueprintCallable, Category = "ALS|Character States")
-	void SetViewMode(EALSViewMode NewViewMode);
-
-	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "ALS|Character States")
-	void Server_SetViewMode(EALSViewMode NewViewMode);
-
-	UFUNCTION(BlueprintGetter, Category = "ALS|Character States")
-	EALSViewMode GetViewMode() const { return ViewMode; }
 
 	UFUNCTION(BlueprintCallable, Category = "ALS|Character States")
 	void SetOverlayState(EALSOverlayState NewState);
@@ -129,6 +129,7 @@ public:
 	EALSOverlayState SwitchRight() const { return OverlayState; }
 
 	/** Landed, Jumped, Rolling, Mantling and Ragdoll*/
+
 	/** On Landed*/
 	UFUNCTION(BlueprintCallable, Category = "ALS|Character States")
 	void EventOnLanded();
@@ -202,11 +203,9 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "ALS|Character States")
 	void Server_SetDesiredRotationMode(EALSRotationMode NewRotMode);
 	
+	// Utility function to determine the indended movement direction.
 	UFUNCTION(BlueprintCallable, Category = "ALS|Input")
-	void SetFlightMode(EALSFlightMode NewFlightMode);
-
-	UFUNCTION(BlueprintCallable, Category = "ALS|Input")
-	FVector GetPlayerMovementInput() const;
+	virtual FVector GetMovementDirection() const { return FVector::ZeroVector; }
 
 	/** Rotation System */
 
@@ -219,11 +218,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "ALS|Mantle System")
 	FALSMantleAsset GetMantleAsset(EALSMantleType MantleType);
 
-	/** Mantle check for jumping onto low or high objects. Triggered by button press. */
 	UFUNCTION(BlueprintCallable, Category = "ALS|Mantle System")
 	virtual bool MantleCheckGrounded();
 
-	/** Automatically called mantle check for catching the character in midair. */
 	UFUNCTION(BlueprintCallable, Category = "ALS|Mantle System")
 	virtual bool MantleCheckFalling();
 
@@ -265,46 +262,23 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "ALS|Movement System")
 	UAnimMontage* GetRollAnimation();
 
-	UFUNCTION(Server, Reliable, Category = "ALS|Movement System")
-	void Server_SetInputVectorX(float NewInput);
-
-	UFUNCTION(Server, Reliable, Category = "ALS|Movement System")
-	void Server_SetInputVectorY(float NewInput);
-
-	UFUNCTION(Server, Reliable, Category = "ALS|Movement System")
-	void Server_SetInputVectorZ(float NewInput);
-
 	/** Utility */
 
 	UFUNCTION(BlueprintCallable, Category = "ALS|Utility")
 	float GetAnimCurveValue(FName CurveName) const;
 
+	// 
+	UFUNCTION(BlueprintPure, Category = "Utilities")
+	float GetAbsoluteAltitude() const;
+
+	// Compares absolute altitude against the altitude falloff, resulting in a float representing atmosphere pressure at
+	// the current altitude.
+	UFUNCTION(BlueprintPure, Category = "Utilities")
+	float GetAtmospherePressure() const;
+	
 	/** Implement on BP to draw debug spheres */
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "ALS|Debug")
 	void DrawDebugSpheres();
-
-	UFUNCTION(BlueprintPure, Category = "Utilities")
-    float EvalAltitude() const;
-	
-	/** Camera System */
-
-	UFUNCTION(BlueprintGetter, Category = "ALS|Camera System")
-	bool IsRightShoulder() const { return bRightShoulder; }
-
-	UFUNCTION(BlueprintCallable, Category = "ALS|Camera System")
-	void SetRightShoulder(bool bNewRightShoulder) { bRightShoulder = bNewRightShoulder; }
-
-	UFUNCTION(BlueprintCallable, Category = "ALS|Camera System")
-	virtual ECollisionChannel GetThirdPersonTraceParams(FVector& TraceOrigin, float& TraceRadius);
-
-	UFUNCTION(BlueprintCallable, Category = "ALS|Camera System")
-	virtual FTransform GetThirdPersonPivotTarget();
-
-	UFUNCTION(BlueprintCallable, Category = "ALS|Camera System")
-	virtual FVector GetFirstPersonCameraTarget();
-
-	UFUNCTION(BlueprintCallable, Category = "ALS|Camera System")
-	void GetCameraParameters(float& TPFOVOut, float& FPFOVOut, bool& bRightShoulderOut) const;
 
 	/** Essential Information Getters/Setters */
 
@@ -335,7 +309,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ALS|Essential Information")
 	void SetSpeed(float NewSpeed);
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "ALS|Essential Information")
 	FRotator GetAimingRotation() const { return AimingRotation; }
 
 	UFUNCTION(BlueprintGetter, Category = "ALS|Essential Information")
@@ -344,42 +318,28 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ALS|Essential Information")
 	void SetAimYawRate(float NewAimYawRate);
 
-	UFUNCTION(BlueprintCallable, Category = "ALS|Essential Information")
-	void GetControlForwardRightVector(FVector& Forward, FVector& Right) const;
-
 protected:
 	/** Ragdoll System */
 
 	void RagdollUpdate(float DeltaTime);
-
 	void SetActorLocationDuringRagdoll(float DeltaTime);
 
 	/** State Changes */
-
 	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode = 0) override;
-
 	virtual void OnMovementStateChanged(EALSMovementState PreviousState);
-
 	virtual void OnMovementActionChanged(EALSMovementAction PreviousAction);
-
 	virtual void OnStanceChanged(EALSStance PreviousStance);
-
 	virtual void OnRotationModeChanged(EALSRotationMode PreviousRotationMode);
-
 	virtual void OnFlightModeChanged(EALSFlightMode PreviousFlightMode);
-
 	virtual void OnGaitChanged(EALSGait PreviousGait);
-
-	virtual void OnViewModeChanged(EALSViewMode PreviousViewMode);
-
 	virtual void OnOverlayStateChanged(EALSOverlayState PreviousState);
 
+	// Crouching overrides
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
-
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 
+	// Jumping overrides	
 	virtual void OnJumped_Implementation() override;
-
 	virtual void Landed(const FHitResult& Hit) override;
 
 	void OnLandFrictionReset() const;
@@ -387,32 +347,32 @@ protected:
 	void SetEssentialValues(float DeltaTime);
 
 	void UpdateCharacterMovement();
-
-	void UpdateDynamicMovementSettings(EALSGait AllowedGait);
-
-	void UpdateGroundedRotation(float DeltaTime);
-
-	void UpdateFallingRotation(float DeltaTime);
-
-	void UpdateFlightRotation(float DeltaTime);
-
 	void UpdateFlightMovement(float DeltaTime);
 
-	/** Place for children to try to activate the gameplay */
+	void UpdateDynamicMovementSettingsNetworked(EALSGait AllowedGait);
+	void UpdateDynamicMovementSettingsStandalone(EALSGait AllowedGait);
+
+	void UpdateGroundedRotation(float DeltaTime);
+	void UpdateFallingRotation(float DeltaTime);
+	void UpdateFlightRotation(float DeltaTime);
+	void UpdateSwimmingRotation(float DeltaTime);
+
+	/** Flight System */
+	
+	/** This must be overriden to setup conditions for selective allowing character flight. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintPure, Category = "ALS|Flight")
-	bool FlightCheck();
+    bool FlightCheck();
 
 	/** Mantle System */
 
 	virtual void MantleStart(float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS, EALSMantleType MantleType);
 
-	virtual bool MantleCheck(const FALSMantleTraceSettings& TraceSettings,
-	                         EDrawDebugTrace::Type DebugType = EDrawDebugTrace::Type::ForOneFrame);
+	virtual bool MantleCheck(const FALSMantleTraceSettings& TraceSettings);
 
 	/** Place for designers to implement gameplay specific checks for allowing the player to mantle */
 	UFUNCTION(BlueprintImplementableEvent, Category = "ALS|Mantle System")
-	bool CanMantle(EALSMantleType Type);
-
+    bool CanMantle(EALSMantleType Type);
+	
 	UFUNCTION()
 	virtual void MantleUpdate(float BlendIn);
 
@@ -426,80 +386,29 @@ protected:
 	void SmoothCharacterRotation(FRotator Target, float TargetInterpSpeed, float ActorInterpSpeed, float DeltaTime);
 
 	float CalculateGroundedRotationRate() const;
-
 	float CalculateFlightRotationRate() const;
-	
+
 	void UpdateRelativeAltitude();
 
+	// Gets the relative altitude of the player, measuring down to a point below the character.
 	UFUNCTION(BlueprintCallable, Category = "ALS|Flight")
-	float FlightAltitudeCheck(float CheckDistance) const;
-
+	float FlightDistanceCheck(float CheckDistance, FVector Direction) const;
+	
 	void LimitRotation(float AimYawMin, float AimYawMax, float InterpSpeed, float DeltaTime);
 
 	void SetMovementModel();
-
-	/** Input */
-
-	virtual void AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce = false) override;
-
-	// Blueprint Callable Action to hook into the input system.
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void AddPlayerInput(FVector WorldDirection, float ScaleValue);
-
-	// Function intended for non player controllers to add movement that isn't "intended", e.g. being blown around by wind.
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void AddExternalInput(FVector WorldDirection, float ScaleValue);
-
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void ForwardMovementInput(float Value);
-
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void RightMovementInput(float Value);
-
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void VerticalMovementInput(float Value);
-
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void JumpBegin();
-	
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void JumpEnd();
-
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void SetAiming(bool Aim);
-	
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void RequestCrouch();
-
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void ToggleShoulder();
-
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void OnSwitchCameraMode();
-
-	void StancePressedAction();
-
-	void WalkPressedAction();
-
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void ToggleRagdoll();
-
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void SetCameraRotationMode(EALSRotationMode Mode);
 
 	/** Replication */
 	UFUNCTION()
 	void OnRep_RotationMode(EALSRotationMode PrevRotMode);
 
 	UFUNCTION()
-	void OnRep_ViewMode(EALSViewMode PrevViewMode);
-
-	UFUNCTION()
 	void OnRep_FlightMode(EALSFlightMode PrevFlightMode);
-
+	
 	UFUNCTION()
 	void OnRep_OverlayState(EALSOverlayState PrevOverlayState);
 
+protected:
 	/* Custom movement component*/
 	UALSCharacterMovementComponent* MyCharacterMovementComponent;
 
@@ -509,54 +418,22 @@ protected:
 	EALSRotationMode DesiredRotationMode = EALSRotationMode::LookingDirection;
 
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "ALS|Input")
-	EALSGait DesiredGait = EALSGait::Running;
+	EALSGait DesiredGait = EALSGait::GaitNormal;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "ALS|Input")
 	EALSStance DesiredStance = EALSStance::Standing;
 
-	// A replicated vector showing the direction of the local controller/AI's input.
-	UPROPERTY(BlueprintReadOnly, Replicated, Category = "ALS|Input") 
-	FVector InputVector;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Input")
-	float FlightControl = 1;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|Input", BlueprintReadOnly) // TODO: Determine if this and LookLeftRightRate are used anywhere. Delete if not.
-	float LookUpDownRate = 1.25f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|Input", BlueprintReadOnly)
-	float LookLeftRightRate = 1.25f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|Input", BlueprintReadOnly)
-	float RollDoubleTapTimeout = 0.3f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|Input", BlueprintReadOnly)
-	float ViewModeSwitchHoldTime = 0.2f;
-
+	// @TODO what is this for. delete???
 	UPROPERTY(Category = "ALS|Input", BlueprintReadOnly)
 	int32 TimesPressedStance = 0;
 
+	// @TODO what is this for. delete???
 	UPROPERTY(Category = "ALS|Input", BlueprintReadOnly)
 	bool bBreakFall = false;
 
+	// @TODO what is this for. delete???
 	UPROPERTY(Category = "ALS|Input", BlueprintReadOnly)
 	bool bSprintHeld = false;
-
-	/** Camera System */
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Camera System")
-	float ThirdPersonFOV = 90.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Camera System")
-	float FirstPersonFOV = 90.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Camera System")
-	bool bRightShoulder = false;
-
-	/** State Values */
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ALS|State Values", ReplicatedUsing = OnRep_OverlayState)
-	EALSOverlayState OverlayState = EALSOverlayState::Default;
 
 	/** Movement System */
 
@@ -568,20 +445,6 @@ protected:
 	
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Movement System")
 	FALSMovementStateSettings MovementData;
-
-	/** Mantle System */
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
-	FALSMantleTraceSettings GroundedTraceSettings;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
-	FALSMantleTraceSettings AutomaticTraceSettings;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
-	FALSMantleTraceSettings FallingTraceSettings;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
-	UCurveFloat* MantleTimelineCurve;
 
 	/** Components */
 
@@ -627,6 +490,9 @@ protected:
 
 	/** State Values */
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ALS|State Values", ReplicatedUsing = OnRep_OverlayState)
+	EALSOverlayState OverlayState = EALSOverlayState::Default;
+
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|State Values")
 	EALSMovementState MovementState = EALSMovementState::None;
 
@@ -638,18 +504,15 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|State Values", ReplicatedUsing = OnRep_RotationMode)
 	EALSRotationMode RotationMode = EALSRotationMode::LookingDirection;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|State Values", ReplicatedUsing = OnRep_FlightMode)
+	EALSFlightMode FlightMode = EALSFlightMode::None;
 
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|State Values")
-	EALSGait Gait = EALSGait::Walking;
+	EALSGait Gait = EALSGait::GaitSlow;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|State Values")
 	EALSStance Stance = EALSStance::Standing;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|State Values", ReplicatedUsing = OnRep_ViewMode)
-	EALSViewMode ViewMode = EALSViewMode::ThirdPerson;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|State Values", ReplicatedUsing = OnRep_FlightMode)
-	EALSFlightMode FlightMode = EALSFlightMode::None;
 
 	/** Rotation System */
 
@@ -662,38 +525,60 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Rotation System")
 	float YawOffset = 0.0f;
 
-	// Maximum rotation rate when traveling at RotationVelocityMax.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|Rotation System")
-	float MaxFlightRotationRate = 5.f;
-
 	/** Flight System */
 
-	// Is there an active wing set created and ready for flight?
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "ALS|Flight")
-	bool bWingsEnabled = false;
+	bool bFlightEnabled = false;
 
-	float RelativeAltitude;
+	// Maximum rotation rate when traveling at RotationVelocityMax.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|Flight")
+	float MaxFlightRotationRate = 5.f;
+
+	// The max degree that flight input will consider forward.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Flight", Meta = (UIMin = 0, UIMax = 90))
+	float MaxFlightForwardAngle = 85;
+
+	// Control for the strength of automatic flight input. Used for calculating wing pressure.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight")
+	float FlightStrengthPassive = 6000;
 	
-	UPROPERTY(BlueprintReadWrite, Category = "ALS|Flight", Meta = (UIMax = 90, UIMin = 0))
-	float FlightForwardAngle = 85;
+	// Control for the strength of manual flight input.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight")
+	float FlightStrengthActive = 1;
 	
-	// Height of sea level. Exposed for debug purposed, but should not be changed other then by Mala itself to ensure sync world properties.
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|Flight")
-	float SeaAltitude = 0.f;
+	// Control for the strength of manual flight input.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight")
+	float EffectiveWeight = 30;
+	
+	// @TODO merge these into one linear color curve so data is packed???
 
-	// Height of the troposphere. Exposed for debug purposed, but should not be changed other then by Mala itself to ensure sync world properties.
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|Flight")
-	float TroposphereHeight = 1000000.f;
-
-	// Flight input strength falloff by altitude. Multiplied by TroposphereHeight, so this should be a normalized curve.
+	// Flight input strength falloff by altitude. Represents the long distance pressure gradient from the thinning of
+	// the atmosphere at higher altitudes. Multiplied by TroposphereHeight, so this should be a normalized curve.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Flight")
-	UCurveFloat* AltitudeFalloff;
+	UCurveFloat* AtmosphericPressureFalloff;
 
-	// Flight input strength falloff by pressure.
+	// Flight input strength falloff by pressure. Represents the short distance pressure gradient from the downward
+	// force of flight against the ground below.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Flight")
 	UCurveFloat* GroundPressureFalloff;
-	
+
+	// Condition to trigger flight automatically cutting out.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Flight")
+	EALSFlightCancelCondition FlightCancelCondition;
+
 	/** Mantle System */
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
+	FALSMantleTraceSettings GroundedTraceSettings;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
+	FALSMantleTraceSettings AutomaticTraceSettings;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
+	FALSMantleTraceSettings FallingTraceSettings;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
+	UCurveFloat* MantleTimelineCurve;
 
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Mantle System")
 	FALSMantleParams MantleParams;
@@ -710,10 +595,14 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Mantle System")
 	FTransform MantleAnimatedStartOffset;
 
+	// Enables automatically vaulting over short obstacles, when moving toward them.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
+	bool bUseAutoVault = true;
+	
 	/** Should the mantle system perform constant checks while falling? */
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "ALS|Mantle System")
 	bool bAlwaysCatchIfFalling = true;
-
+	
 	/** Breakfall System */
 
 	/** If player hits to the ground with a specified amount of velocity, switch to breakfall state */
@@ -721,9 +610,9 @@ protected:
 	bool bBreakfallOnLand = true;
 
 	/** Flag to tell the breakfall system to activate the next time the character lands. This will set to false immediatlely after. */
-	UPROPERTY(BlueprintReadWrite, EditInstanceOnly, Category = "ALS|Breakfall System")
-	bool bBreakFallNextLanding = false;
-
+	UPROPERTY(BlueprintReadWrite, Category = "ALS|Breakfall System")
+	bool bBreakFallNextLanding;
+	
 	/** If player hits to the ground with an amount of velocity greater than specified value, switch to breakfall state */
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "ALS|Breakfall System", meta = (EditCondition = "bBreakfallOnLand"))
 	float BreakfallOnLandVelocity = 600.0f;
@@ -737,6 +626,10 @@ protected:
 	/** If player hits to the ground with an amount of velocity greater than specified value, switch to ragdoll state */
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "ALS|Ragdoll System", meta = (EditCondition = "bRagdollOnLand"))
 	float RagdollOnLandVelocity = 1000.0f;
+
+	/** If player starts to freefall while rolling, switch to ragdoll state */
+	UPROPERTY(BlueprintReadWrite, Category = "ALS|Ragdoll System")
+	bool bRagdollOnRollfall = false;
 
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Ragdoll System")
 	bool bRagdollOnGround = false;
@@ -758,22 +651,25 @@ protected:
 
 	/** Cached Variables */
 
+	// Altitude variables for flight calculations.
+	float SeaAltitude, TroposphereHeight, RelativeAltitude;
+
 	FVector PreviousVelocity;
 
 	float PreviousAimYaw = 0.0f;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category = "Cached Variables")
 	UALSCharacterAnimInstance* MainAnimInstance = nullptr;
-
-	/** Last time the 'first' crouch/roll button is pressed */
-	float LastStanceInputTime = 0.0f;
-
-	/** Last time the camera action button is pressed */
-	float CameraActionPressedTime = 0.0f;
 
 	/* Timer to manage reset of braking friction factor after on landed event */
 	FTimerHandle OnLandedFrictionResetTimer;
 
 	/* Smooth out aiming by interping control rotation*/
 	FRotator AimingRotation;
+
+	/** We won't use curve based movement on networked games */
+	bool bDisableCurvedMovement = false;
+
+	/** AHHH, I hate this, but I wanted to move View Mode to the player only file, and this is the *one* workaround I had to make. */
+	bool RestrictAiming;
 };

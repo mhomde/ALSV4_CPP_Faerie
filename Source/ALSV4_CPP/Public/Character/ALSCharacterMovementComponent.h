@@ -17,27 +17,25 @@ class ALSV4_CPP_API UALSCharacterMovementComponent : public UCharacterMovementCo
 {
 	GENERATED_UCLASS_BODY()
 
-	class FSavedMove_My : public FSavedMove_Character
+	class FSavedMove_Faerie : public FSavedMove_Character
 	{
 	public:
 
 		typedef FSavedMove_Character Super;
 
-		virtual bool CanCombineWith(const FSavedMovePtr& NewMove, ACharacter* Character, float MaxDelta) const override;
 		virtual void Clear() override;
 		virtual uint8 GetCompressedFlags() const override;
 		virtual void SetMoveFor(ACharacter* Character, float InDeltaTime, FVector const& NewAccel,
 		                        class FNetworkPredictionData_Client_Character& ClientData) override;
-		virtual void PrepMoveFor(class ACharacter* Character) override;
 
 		// Walk Speed Update
 		uint8 bSavedRequestMovementSettingsChange : 1;
 	};
 
-	class FNetworkPredictionData_Client_My : public FNetworkPredictionData_Client_Character
+	class FNetworkPredictionData_Client_Faerie : public FNetworkPredictionData_Client_Character
 	{
 	public:
-		FNetworkPredictionData_Client_My(const UCharacterMovementComponent& ClientMovement);
+		FNetworkPredictionData_Client_Faerie(const UCharacterMovementComponent& ClientMovement);
 
 		typedef FNetworkPredictionData_Client_Character Super;
 
@@ -52,28 +50,28 @@ public:
 
 
 	// Movement Settings Variables
-	uint8 bRequestMovementSettingsChange : 1;
+	uint8 bRequestMovementSettingsChange = 1;
 
-	float MyNewBraking;
-	float MyNewGroundFriction;
-	float MyNewMaxWalkSpeed;
-	float MyNewMaxAcceleration;
-
-	float RealBraking;
-	float RealGroundFriction;
-	float RealMaxAcceleration;
+	float MyNewMaxWalkSpeed, MyNewMaxFlySpeed, MyNewMaxSwimSpeed = 0;
 
 	// Set Max Walking Speed (Called from the owning client)
 	UFUNCTION(BlueprintCallable, Category = "Movement Settings")
 	void SetMaxWalkingSpeed(float NewMaxWalkSpeed);
 
-	UFUNCTION(Reliable, Server, WithValidation)
-	void Server_SetMaxWalkingSpeed(const float NewMaxWalkSpeed);
+	UFUNCTION(Reliable, Server)
+	void Server_SetMaxWalkingSpeed(float NewMaxWalkSpeed);
 
-	// Set Movement Settings (Called from the owning client)
+	// Set Max Flying Speed (Called from the owning client)
 	UFUNCTION(BlueprintCallable, Category = "Movement Settings")
-	void SetMovementSettings(FVector NewMovementSettings);
+    void SetMaxFlyingSpeed(float NewMaxFlySpeed);
 
-	UFUNCTION(Reliable, Server, WithValidation)
-	void Server_SetMovementSettings(const FVector NewMovementSettings);
+	UFUNCTION(Reliable, Server)
+    void Server_SetMaxFlyingSpeed(float NewMaxFlySpeed);
+
+	// Set Max Simming Speed (Called from the owning client)
+	UFUNCTION(BlueprintCallable, Category = "Movement Settings")
+    void SetMaxSwimmingSpeed(float NewMaxSwimSpeed);
+
+	UFUNCTION(Reliable, Server)
+    void Server_SetMaxSwimmingSpeed(float NewMaxSwimSpeed);
 };

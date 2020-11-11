@@ -32,8 +32,11 @@ void AALSCharacter::ClearHeldObject() const
 	SkeletalMesh->SetAnimInstanceClass(nullptr);
 }
 
-void AALSCharacter::AttachToHand(UStaticMesh* NewStaticMesh, USkeletalMesh* NewSkeletalMesh, UClass* NewAnimClass,
-                                 const bool bLeftHand, const FVector Offset) const
+void AALSCharacter::AttachToHand(UStaticMesh* NewStaticMesh,
+								 USkeletalMesh* NewSkeletalMesh,
+								 UClass* NewAnimClass,
+                                 const bool bLeftHand,
+                                 const FVector Offset) const
 {
 	ClearHeldObject();
 
@@ -97,13 +100,13 @@ FVector AALSCharacter::GetFirstPersonCameraTarget()
 	return GetMesh()->GetSocketLocation(TEXT("FP_Camera"));
 }
 
-void AALSCharacter::OnOverlayStateChanged(EALSOverlayState PreviousState)
+void AALSCharacter::OnOverlayStateChanged(const EALSOverlayState PreviousState)
 {
 	Super::OnOverlayStateChanged(PreviousState);
 	UpdateHeldObject();
 }
 
-void AALSCharacter::Tick(float DeltaTime)
+void AALSCharacter::Tick(const float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	UpdateHeldObjectAnimations();
@@ -116,8 +119,9 @@ void AALSCharacter::BeginPlay()
 	UpdateHeldObject();
 }
 
-void AALSCharacter::MantleStart(float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS,
-                                EALSMantleType MantleType)
+void AALSCharacter::MantleStart(const float MantleHeight,
+								const FALSComponentAndTransform& MantleLedgeWS,
+                                const EALSMantleType MantleType)
 {
 	Super::MantleStart(MantleHeight, MantleLedgeWS, MantleType);
 	if (MantleType != EALSMantleType::LowMantle)

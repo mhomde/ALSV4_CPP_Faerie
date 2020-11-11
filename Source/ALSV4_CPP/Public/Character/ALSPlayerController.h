@@ -12,7 +12,7 @@
 #include "GameFramework/PlayerController.h"
 #include "ALSPlayerController.generated.h"
 
-class AALSBaseCharacter;
+class AALSPlayerCharacter;
 
 /**
  * Player controller class
@@ -27,5 +27,5 @@ public:
 
 private:
 	/** Main character reference */
-	AALSBaseCharacter* PossessedCharacter = nullptr;
+	AALSPlayerCharacter* PossessedCharacter = nullptr;
 };

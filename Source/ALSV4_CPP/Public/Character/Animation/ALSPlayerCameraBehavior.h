@@ -11,10 +11,9 @@
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
 #include "Library/ALSCharacterEnumLibrary.h"
-
 #include "ALSPlayerCameraBehavior.generated.h"
 
-class AALSBaseCharacter;
+class AALSPlayerCharacter;
 class AALSPlayerController;
 
 /**
@@ -26,34 +25,34 @@ class ALSV4_CPP_API UALSPlayerCameraBehavior : public UAnimInstance
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	AALSBaseCharacter* ControlledPawn = nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	AALSPlayerCharacter* ControlledPawn = nullptr;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	APlayerController* PlayerController = nullptr;
 
 protected:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ALS Player Camera Behavior")
 	EALSMovementState MovementState;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ALS Player Camera Behavior")
 	EALSMovementAction MovementAction;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ALS Player Camera Behavior")
 	EALSRotationMode RotationMode;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ALS Player Camera Behavior")
 	EALSGait Gait;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ALS Player Camera Behavior")
 	EALSStance Stance;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ALS Player Camera Behavior")
 	EALSViewMode ViewMode;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ALS Player Camera Behavior")
 	bool bRightShoulder;
 };

@@ -5,13 +5,10 @@
 // Original Author: Doğa Can Yanıkoğlu
 // Contributors:    
 
-
 #include "Character/Animation/ALSPlayerCameraBehavior.h"
+#include "Character/ALSPlayerCharacter.h"
 
-
-#include "Character/ALSBaseCharacter.h"
-
-void UALSPlayerCameraBehavior::NativeUpdateAnimation(float DeltaSeconds)
+void UALSPlayerCameraBehavior::NativeUpdateAnimation(const float DeltaSeconds)
 {
 	if (ControlledPawn)
 	{

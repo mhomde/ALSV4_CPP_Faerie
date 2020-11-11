@@ -5,13 +5,14 @@
 // Original Author: Jens Bjarne Myhre
 // Contributors:
 
+// ReSharper disable CppUE4CodingStandardNamingViolationWarning
+// ReSharper disable CppNonExplicitConvertingConstructor
+// ReSharper disable CppNonExplicitConversionOperator
 #pragma once
 
 #include "CoreMinimal.h"
 #include "ALSCharacterEnumLibrary.h"
-
 #include "ALSStructEnumLibrary.generated.h"
-
 
 USTRUCT(BlueprintType)
 struct FALSMovementState
@@ -67,6 +68,53 @@ public:
 		Flight_ = State == EALSMovementState::Flight;
 		Mantling_ = State == EALSMovementState::Mantling;
 		Ragdoll_ = State == EALSMovementState::Ragdoll;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct FALSFlightMode
+{
+	GENERATED_BODY()
+
+private:
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	EALSFlightMode FlightMode = EALSFlightMode::None;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	bool None_ = true;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	bool Neutral_ = false;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	bool Raising_ = false;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	bool Lowering_ = false;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	bool Hovering_ = false;
+
+public:
+	FALSFlightMode() {}
+	FALSFlightMode(const EALSFlightMode InitialFlightMode) { *this = InitialFlightMode; }
+
+	FORCEINLINE const bool& None() const { return None_; }
+	FORCEINLINE const bool& Neutral() const { return Neutral_; }
+	FORCEINLINE const bool& Raising() const { return Raising_; }
+	FORCEINLINE const bool& Lowering() const { return Lowering_; }
+	FORCEINLINE const bool& Hovering() const { return Hovering_; }
+
+	FORCEINLINE operator EALSFlightMode() const { return FlightMode; }
+
+	FORCEINLINE void operator=(const EALSFlightMode InitialFlightMode)
+	{
+		FlightMode = InitialFlightMode;
+		None_ = FlightMode == EALSFlightMode::None;
+		Neutral_ = FlightMode == EALSFlightMode::Neutral;
+		Raising_ = FlightMode == EALSFlightMode::Raising;
+		Lowering_ = FlightMode == EALSFlightMode::Lowering;
+		Hovering_ = FlightMode == EALSFlightMode::Hovering;
 	}
 };
 
@@ -235,7 +283,7 @@ struct FALSGait
 
 private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
-	EALSGait Gait = EALSGait::Walking;
+	EALSGait Gait = EALSGait::GaitSlow;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	bool Walking_ = true;
@@ -259,9 +307,9 @@ public:
 	FORCEINLINE void operator=(const EALSGait NewGait)
 	{
 		Gait = NewGait;
-		Walking_ = Gait == EALSGait::Walking;
-		Running_ = Gait == EALSGait::Running;
-		Sprinting_ = Gait == EALSGait::Sprinting;
+		Walking_ = Gait == EALSGait::GaitSlow;
+		Running_ = Gait == EALSGait::GaitNormal;
+		Sprinting_ = Gait == EALSGait::GaitFast;
 	}
 };
 

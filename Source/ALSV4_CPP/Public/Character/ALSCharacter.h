@@ -5,18 +5,17 @@
 // Original Author: Doğa Can Yanıkoğlu
 // Contributors:    
 
-
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Character/ALSBaseCharacter.h"
+#include "ALSPlayerCharacter.h"
 #include "ALSCharacter.generated.h"
 
 /**
  * Specialized character class, with additional features like held object etc.
  */
 UCLASS(Blueprintable, BlueprintType)
-class ALSV4_CPP_API AALSCharacter : public AALSBaseCharacter
+class ALSV4_CPP_API AALSCharacter : public AALSPlayerCharacter
 {
 	GENERATED_BODY()
 
@@ -61,12 +60,12 @@ protected:
 	void UpdateHeldObjectAnimations();
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	USceneComponent* HeldObjectRoot = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	USkeletalMeshComponent* SkeletalMesh = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	UStaticMeshComponent* StaticMesh = nullptr;
 };

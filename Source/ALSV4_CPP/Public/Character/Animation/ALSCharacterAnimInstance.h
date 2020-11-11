@@ -5,14 +5,12 @@
 // Original Author: Doğa Can Yanıkoğlu
 // Contributors:    
 
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
 #include "Library/ALSAnimationStructLibrary.h"
 #include "Library/ALSStructEnumLibrary.h"
-
 #include "ALSCharacterAnimInstance.generated.h"
 
 class AALSBaseCharacter;
@@ -121,14 +119,9 @@ private:
 
 	/** Foot IK */
 
-	void SetFootLocking(float DeltaSeconds,
-						FName EnableFootIKCurve,
-						FName FootLockCurve,
-						FName IKFootBone,
-						float& CurFootLockAlpha,
-						bool& UseFootLockCurve,
-						FVector& CurFootLockLoc,
-						FRotator& CurFootLockRot) const;
+	void SetFootLocking(float DeltaSeconds, FName EnableFootIKCurve, FName FootLockCurve, FName IKFootBone,
+	                    float& CurFootLockAlpha, bool& UseFootLockCurve,
+	                    FVector& CurFootLockLoc, FRotator& CurFootLockRot) const;
 
 	void SetFootLockOffsets(float DeltaSeconds, FVector& LocalLoc, FRotator& LocalRot) const;
 
@@ -177,12 +170,13 @@ private:
 
 protected:
 	/** References */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category = "Components")
 	AALSBaseCharacter* Character = nullptr;
 
 	/** Character Information */
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Character Information", Meta = (ShowOnlyInnerProperties))
 	FALSAnimCharacterInformation CharacterInformation;
+
 public:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Character Information")
 	FALSMovementState MovementState = EALSMovementState::None;
@@ -194,7 +188,7 @@ public:
 	FALSRotationMode RotationMode = EALSRotationMode::LookingDirection;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Character Information")
-	FALSGait Gait = EALSGait::Walking;
+	FALSGait Gait = EALSGait::GaitSlow;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Character Information")
 	FALSStance Stance = EALSStance::Standing;

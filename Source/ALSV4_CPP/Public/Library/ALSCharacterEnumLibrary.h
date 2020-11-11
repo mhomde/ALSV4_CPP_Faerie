@@ -29,9 +29,9 @@ static FORCEINLINE FString GetEnumerationToString(const Enumeration InValue)
 UENUM(BlueprintType)
 enum class EALSGait : uint8
 {
-	Walking,
-	Running,
-	Sprinting
+	GaitSlow,
+	GaitNormal,
+	GaitFast
 };
 
 UENUM(BlueprintType)
@@ -48,12 +48,12 @@ UENUM(BlueprintType)
 enum class EALSMovementState : uint8
 {
 	None,
-	Grounded,
-	Freefall,
-	Flight,
-	Swimming,
-	Mantling,
-	Ragdoll
+    Grounded,
+    Freefall,
+    Flight,
+    Swimming,
+    Mantling,
+    Ragdoll
 };
 
 UENUM(BlueprintType)
@@ -87,9 +87,17 @@ enum class EALSFlightMode : uint8
 {
 	None,
     Neutral,
-	Raising,
-	Lowering,
-	Hovering
+    Raising,
+    Lowering,
+    Hovering
+};
+
+UENUM(BlueprintType)
+enum class EALSFlightCancelCondition : uint8
+{
+	Disabled UMETA(ToolTip = "Disable any automatic flight cancellation"),
+	VelocityThreshold UMETA(ToolTip = "Hits on the player must be higher than a threshold to trigger flight cancellation"),
+	AnyHit UMETA(ToolTip = "Any event hit will trigger flight cancellation")
 };
 
 UENUM(BlueprintType)
