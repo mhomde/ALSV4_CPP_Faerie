@@ -1,5 +1,5 @@
 # Faerie Advanced Locomotion System V4 on C++
-![image](https://github.com/dyanikoglu/ALSV4_CPP/raw/main/Resources/Readme_Content_2.gif)
+![image](https://github.com/Drakynfly/ALSV4_CPP_Faerie/raw/main/Resources/Readme_Content_2.gif)
 
 ## About
 - This fork is my (Guy Lundvall, aka Drakynfly) customized version of ALSV4_CPP by dyanikoglu that adds features that I need for my project, and feel that I should leave here for anyone else who needs it, since I've gotten so much out of this plugin. 
@@ -17,11 +17,11 @@
 
 ## Setting Up The Plugin
 - Clone the repository inside your project's `Plugins` folder, or download the latest release and extract it into your project's or engine's `Plugins` folder.
-- This fork removes the need for any config file changes. There are now settings availible in Project Settings menu. Setup Axis inputs, trace channels, collision profiles, and more.
-- This fork seperates the functionality for controlling ALSBaseCharacter into a child class: ALSPlayerCharacter. Parent player controlled characters to this class for access to the input functions.
-```
 - Launch the project, and enable plugin content viewer as seen below. This will show contents of the plugin in your content browser:
-![image](https://github.com/dyanikoglu/ALSV4_CPP/raw/main/Resources/Readme_Content_1.png)
+![image](https://github.com/Drakynfly/ALSV4_CPP_Faerie/raw/main/Resources/Readme_Content_1.png)
+- This fork removes the need for any config file changes. There are now settings availible in Project Settings menu. Setup Axis inputs, trace channels, collision profiles, and more.
+![image](https://github.com/Drakynfly/ALSV4_CPP_Faerie/raw/main/Resources/Readme_Content_3.png)
+- This fork seperates the functionality for controlling ALSBaseCharacter into a child class: ALSPlayerCharacter. Parent player controlled characters to this class for access to the rest of the input functions (which are renamed to all begin with "Input_").
 
 ## License & Contribution
 **Source code** of the plugin is licensed under MIT license, and other developers are encouraged to fork the repository, open issues & pull requests to help the development.
