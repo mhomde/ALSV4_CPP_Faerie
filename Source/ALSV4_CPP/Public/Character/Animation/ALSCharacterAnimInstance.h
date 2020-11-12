@@ -31,35 +31,35 @@ public:
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Play Animation")
 	void PlayTransition(const FALSDynamicMontageParams& Parameters);
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Play Animation")
 	void PlayTransitionChecked(const FALSDynamicMontageParams& Parameters);
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Play Animation")
 	void PlayDynamicTransition(float ReTriggerDelay, FALSDynamicMontageParams Parameters);
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Notification")
 	void OnJumped();
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Notification")
 	void OnPivot();
 
 	UFUNCTION(BlueprintCallable, Category = "Grounded")
-	void SetGroundedEntryState(EALSGroundedEntryState NewGroundedEntryState)
+	void SetGroundedEntryState(const EALSGroundedEntryState NewGroundedEntryState)
 	{
 		GroundedEntryState = NewGroundedEntryState;
 	}
 
 	UFUNCTION(BlueprintCallable, Category = "Grounded")
-	void SetOverlayOverrideState(int32 OverlayOverrideState)
+	void SetOverlayOverrideState(const int32 OverlayOverrideState)
 	{
 		LayerBlendingValues.OverlayOverrideState = OverlayOverrideState;
 	}
 
 	UFUNCTION(BlueprintCallable, Category = "Grounded")
-	void SetTrackedHipsDirection(EALSHipsDirection HipsDirection)
+	void SetTrackedHipsDirection(const EALSHipsDirection HipsDirection)
 	{
 		Grounded.TrackedHipsDirection = HipsDirection;
 	}
