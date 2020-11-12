@@ -363,6 +363,25 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintPure, Category = "ALS|Flight")
     bool FlightCheck();
 
+	bool FlightInterruptThresholdCheck(UPrimitiveComponent* MyComp,
+                           AActor* Other,
+                           UPrimitiveComponent* OtherComp,
+                           bool bSelfMoved,
+                           FVector HitLocation,
+                           FVector HitNormal,
+                           FVector NormalImpulse,
+                           const FHitResult& Hit) const;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "ALS|Flight")
+	bool FlightInterruptCustomCheck(UPrimitiveComponent* MyComp,
+							   AActor* Other,
+							   UPrimitiveComponent* OtherComp,
+							   bool bSelfMoved,
+							   FVector HitLocation,
+							   FVector HitNormal,
+							   FVector NormalImpulse,
+							   const FHitResult& Hit);
+
 	/** Mantle System */
 
 	virtual void MantleStart(float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS, EALSMantleType MantleType);
@@ -565,6 +584,10 @@ protected:
 	// Condition to trigger flight automatically cutting out.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Flight")
 	EALSFlightCancelCondition FlightCancelCondition;
+
+	// The velocity of the hit required to trigger a positive FlightInterruptThresholdCheck.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight", EditCondition = "FlightCancelCondition == EALSFlightCancelCondition::VelocityThreshold || FlightCancelCondition == EALSFlightCancelCondition::CustomOrThreshold || FlightCancelCondition == EALSFlightCancelCondition::CustomAndThreshold")
+	float FlightInterruptThreshold = 600;
 
 	/** Mantle System */
 	

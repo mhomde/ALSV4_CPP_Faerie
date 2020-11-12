@@ -53,14 +53,52 @@ void AALSBaseCharacter::PostInitializeComponents()
 	MyCharacterMovementComponent = Cast<UALSCharacterMovementComponent>(Super::GetMovementComponent());
 }
 
-void AALSBaseCharacter::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp,
-	bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
+void AALSBaseCharacter::NotifyHit(UPrimitiveComponent* MyComp,
+								  AActor* Other,
+								  UPrimitiveComponent* OtherComp,
+								  const bool bSelfMoved,
+								  const FVector HitLocation,
+								  const FVector HitNormal,
+								  const FVector NormalImpulse,
+								  const FHitResult& Hit)
 {
+	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
+	
 	if (FlightMode != EALSFlightMode::None)
 	{
-		if (FlightCancelCondition == EALSFlightCancelCondition::AnyHit)
+		switch (FlightCancelCondition)
 		{
+		case EALSFlightCancelCondition::Disabled: break;
+		case EALSFlightCancelCondition::AnyHit:
 			SetFlightMode(EALSFlightMode::None);
+			break;
+		case EALSFlightCancelCondition::VelocityThreshold:
+			if (FlightInterruptThresholdCheck(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit))
+			{
+				SetFlightMode(EALSFlightMode::None);
+			}
+			break;
+		case EALSFlightCancelCondition::Custom:
+			if (FlightInterruptCustomCheck(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit))
+			{
+				SetFlightMode(EALSFlightMode::None);
+			}
+			break;
+		case EALSFlightCancelCondition::CustomOrThreshold:
+			if (FlightInterruptThresholdCheck(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit)
+				|| FlightInterruptCustomCheck(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit))
+			{
+				SetFlightMode(EALSFlightMode::None);
+			}
+			break;
+		case EALSFlightCancelCondition::CustomAndThreshold:
+			if (FlightInterruptThresholdCheck(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit)
+				&& FlightInterruptCustomCheck(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit))
+			{
+				SetFlightMode(EALSFlightMode::None);
+			}
+			break;
+		default: ;
 		}
 	}
 }
@@ -79,18 +117,6 @@ void AALSBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION(AALSBaseCharacter, RotationMode, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(AALSBaseCharacter, OverlayState, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(AALSBaseCharacter, FlightMode, COND_SkipOwner);
-}
-
-void AALSBaseCharacter::OnBreakfall_Implementation()
-{
-	Replicated_PlayMontage(GetRollAnimation(), 1.35);
-}
-
-void AALSBaseCharacter::Replicated_PlayMontage_Implementation(UAnimMontage* Montage, const float Track)
-{
-	// Roll: Simply play a Root Motion Montage.
-	MainAnimInstance->Montage_Play(Montage, Track);
-	Server_PlayMontage(Montage, Track);
 }
 
 void AALSBaseCharacter::BeginPlay()
@@ -164,12 +190,6 @@ void AALSBaseCharacter::PreInitializeComponents()
 	}
 }
 
-void AALSBaseCharacter::SetAimYawRate(const float NewAimYawRate)
-{
-	AimYawRate = NewAimYawRate;
-	MainAnimInstance->GetCharacterInformationMutable().AimYawRate = AimYawRate;
-}
-
 void AALSBaseCharacter::Tick(const float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -224,6 +244,12 @@ void AALSBaseCharacter::Tick(const float DeltaTime)
 	PreviousAimYaw = AimingRotation.Yaw;
 
 	DrawDebugSpheres();
+}
+
+void AALSBaseCharacter::SetAimYawRate(const float NewAimYawRate)
+{
+	AimYawRate = NewAimYawRate;
+	MainAnimInstance->GetCharacterInformationMutable().AimYawRate = AimYawRate;
 }
 
 void AALSBaseCharacter::RagdollStart()
@@ -297,11 +323,6 @@ void AALSBaseCharacter::RagdollEnd()
 	GetMesh()->SetAllBodiesSimulatePhysics(false);
 }
 
-void AALSBaseCharacter::Server_SetMeshLocationDuringRagdoll_Implementation(const FVector MeshLocation)
-{
-	TargetRagdollLocation = MeshLocation;
-}
-
 void AALSBaseCharacter::SetMovementState(const EALSMovementState NewState)
 {
 	if (MovementState != NewState)
@@ -346,7 +367,6 @@ void AALSBaseCharacter::SetGait(const EALSGait NewGait)
 	}
 }
 
-
 void AALSBaseCharacter::SetDesiredStance(const EALSStance NewStance)
 {
 	DesiredStance = NewStance;
@@ -354,11 +374,6 @@ void AALSBaseCharacter::SetDesiredStance(const EALSStance NewStance)
 	{
 		Server_SetDesiredStance(NewStance);
 	}
-}
-
-void AALSBaseCharacter::Server_SetDesiredStance_Implementation(const EALSStance NewStance)
-{
-	SetDesiredStance(NewStance);
 }
 
 void AALSBaseCharacter::SetDesiredGait(const EALSGait NewGait)
@@ -370,11 +385,6 @@ void AALSBaseCharacter::SetDesiredGait(const EALSGait NewGait)
 	}
 }
 
-void AALSBaseCharacter::Server_SetDesiredGait_Implementation(const EALSGait NewGait)
-{
-	SetDesiredGait(NewGait);
-}
-
 void AALSBaseCharacter::SetDesiredRotationMode(const EALSRotationMode NewRotMode)
 {
 	DesiredRotationMode = NewRotMode;
@@ -383,11 +393,6 @@ void AALSBaseCharacter::SetDesiredRotationMode(const EALSRotationMode NewRotMode
 	{
 		Server_SetDesiredRotationMode(NewRotMode);
 	}
-}
-
-void AALSBaseCharacter::Server_SetDesiredRotationMode_Implementation(const EALSRotationMode NewRotMode)
-{
-	SetDesiredRotationMode(NewRotMode);
 }
 
 void AALSBaseCharacter::SetRotationMode(const EALSRotationMode NewRotationMode)
@@ -405,11 +410,6 @@ void AALSBaseCharacter::SetRotationMode(const EALSRotationMode NewRotationMode)
 	}
 }
 
-void AALSBaseCharacter::Server_SetRotationMode_Implementation(const EALSRotationMode NewRotationMode)
-{
-	SetRotationMode(NewRotationMode);
-}
-
 void AALSBaseCharacter::SetFlightMode(const EALSFlightMode NewFlightMode)
 {
 	if (NewFlightMode == FlightMode) return; // Guard to prevent useless calls.
@@ -422,11 +422,6 @@ void AALSBaseCharacter::SetFlightMode(const EALSFlightMode NewFlightMode)
 	{
 		Server_SetFlightMode(NewFlightMode);
 	}
-}
-
-void AALSBaseCharacter::Server_SetFlightMode_Implementation(const EALSFlightMode NewFlightMode)
-{
-	SetFlightMode(NewFlightMode);
 }
 
 void AALSBaseCharacter::SetOverlayState(const EALSOverlayState NewState)
@@ -442,12 +437,6 @@ void AALSBaseCharacter::SetOverlayState(const EALSOverlayState NewState)
 			Server_SetOverlayState(NewState);
 		}
 	}
-}
-
-
-void AALSBaseCharacter::Server_SetOverlayState_Implementation(const EALSOverlayState NewState)
-{
-	SetOverlayState(NewState);
 }
 
 void AALSBaseCharacter::EventOnLanded()
@@ -473,78 +462,11 @@ void AALSBaseCharacter::EventOnLanded()
 	}
 }
 
-void AALSBaseCharacter::Multicast_OnLanded_Implementation()
-{
-	if (!IsLocallyControlled())
-	{
-		EventOnLanded();
-	}
-}
-
 void AALSBaseCharacter::EventOnJumped()
 {
 	// Set the new In Air Rotation to the velocity rotation if speed is greater than 100.
 	InAirRotation = Speed > 100.0f ? LastVelocityRotation : GetActorRotation();
 	MainAnimInstance->OnJumped();
-}
-
-void AALSBaseCharacter::Server_MantleStart_Implementation(const float MantleHeight,
-														  const FALSComponentAndTransform& MantleLedgeWS,
-														  const EALSMantleType MantleType)
-{
-	Multicast_MantleStart(MantleHeight, MantleLedgeWS, MantleType);
-}
-
-void AALSBaseCharacter::Multicast_MantleStart_Implementation(const float MantleHeight,
-															 const FALSComponentAndTransform& MantleLedgeWS,
-															 const EALSMantleType MantleType)
-{
-	if (!IsLocallyControlled())
-	{
-		MantleStart(MantleHeight, MantleLedgeWS, MantleType);
-	}
-}
-
-void AALSBaseCharacter::Server_PlayMontage_Implementation(UAnimMontage* Montage, const float Track)
-{
-	Multicast_PlayMontage(Montage, Track);
-}
-
-void AALSBaseCharacter::Multicast_PlayMontage_Implementation(UAnimMontage* Montage, const float Track)
-{
-	if (!IsLocallyControlled())
-	{
-		// Roll: Simply play a Root Motion Montage.
-		MainAnimInstance->Montage_Play(Montage, Track);
-	}
-}
-
-void AALSBaseCharacter::Multicast_OnJumped_Implementation()
-{
-	if (!IsLocallyControlled())
-	{
-		EventOnJumped();
-	}
-}
-
-void AALSBaseCharacter::Server_RagdollStart_Implementation()
-{
-	Multicast_RagdollStart();
-}
-
-void AALSBaseCharacter::Multicast_RagdollStart_Implementation()
-{
-	RagdollStart();
-}
-
-void AALSBaseCharacter::Server_RagdollEnd_Implementation(const FVector CharacterLocation)
-{
-	Multicast_RagdollEnd(CharacterLocation);
-}
-
-void AALSBaseCharacter::Multicast_RagdollEnd_Implementation(const FVector CharacterLocation)
-{
-	RagdollEnd();
 }
 
 void AALSBaseCharacter::SetActorLocationAndTargetRotation(const FVector NewLocation, const FRotator NewRotation)
@@ -923,19 +845,6 @@ void AALSBaseCharacter::OnEndCrouch(const float HalfHeightAdjust, const float Sc
 {
 	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 	SetStance(EALSStance::Standing);
-}
-
-void AALSBaseCharacter::OnJumped_Implementation()
-{
-	Super::OnJumped_Implementation();
-	if (IsLocallyControlled())
-	{
-		EventOnJumped();
-	}
-	if (HasAuthority())
-	{
-		Multicast_OnJumped();
-	}
 }
 
 void AALSBaseCharacter::Landed(const FHitResult& Hit)
@@ -1320,6 +1229,16 @@ void AALSBaseCharacter::UpdateSwimmingRotation(const float DeltaTime)
 	SmoothCharacterRotation({0.0f, AimingRotation.Yaw, 0.0f}, 0.0f, 2.5f, DeltaTime);
 }
 
+bool AALSBaseCharacter::FlightInterruptThresholdCheck(UPrimitiveComponent* MyComp, AActor* Other,
+	UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse,
+	const FHitResult& Hit) const
+{
+	float MyVelLen;
+	FVector MyVelDir;
+	MyComp->GetComponentVelocity().GetAbs().ToDirectionAndLength(MyVelDir, MyVelLen);
+	return MyVelLen >= FlightInterruptThreshold;
+}
+
 void AALSBaseCharacter::MantleStart(const float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS, const EALSMantleType MantleType)
 {
 	// Step 1: Get the Mantle Asset and use it to set the new Mantle Params.
@@ -1701,6 +1620,8 @@ void AALSBaseCharacter::ReplicatedRagdollEnd()
 	}
 }
 
+//**		VARIABLE REPLICATION		**//
+
 void AALSBaseCharacter::OnRep_RotationMode(const EALSRotationMode PrevRotMode)
 {
 	OnRotationModeChanged(PrevRotMode);
@@ -1714,4 +1635,133 @@ void AALSBaseCharacter::OnRep_FlightMode(const EALSFlightMode PrevFlightMode)
 void AALSBaseCharacter::OnRep_OverlayState(const EALSOverlayState PrevOverlayState)
 {
 	OnOverlayStateChanged(PrevOverlayState);
+}
+
+//**		FUNCTION REPLICATION		**//
+
+void AALSBaseCharacter::OnBreakfall_Implementation()
+{
+	Replicated_PlayMontage(GetRollAnimation(), 1.35);
+}
+
+void AALSBaseCharacter::Replicated_PlayMontage_Implementation(UAnimMontage* Montage, const float Track)
+{
+	// Roll: Simply play a Root Motion Montage.
+	MainAnimInstance->Montage_Play(Montage, Track);
+	Server_PlayMontage(Montage, Track);
+}
+
+void AALSBaseCharacter::Server_SetMeshLocationDuringRagdoll_Implementation(const FVector MeshLocation)
+{
+	TargetRagdollLocation = MeshLocation;
+}
+
+void AALSBaseCharacter::Server_SetDesiredStance_Implementation(const EALSStance NewStance)
+{
+	SetDesiredStance(NewStance);
+}
+
+void AALSBaseCharacter::Server_SetDesiredGait_Implementation(const EALSGait NewGait)
+{
+	SetDesiredGait(NewGait);
+}
+
+void AALSBaseCharacter::Server_SetDesiredRotationMode_Implementation(const EALSRotationMode NewRotMode)
+{
+	SetDesiredRotationMode(NewRotMode);
+}
+
+void AALSBaseCharacter::Server_SetRotationMode_Implementation(const EALSRotationMode NewRotationMode)
+{
+	SetRotationMode(NewRotationMode);
+}
+
+void AALSBaseCharacter::Server_SetFlightMode_Implementation(const EALSFlightMode NewFlightMode)
+{
+	SetFlightMode(NewFlightMode);
+}
+
+void AALSBaseCharacter::Server_SetOverlayState_Implementation(const EALSOverlayState NewState)
+{
+	SetOverlayState(NewState);
+}
+
+void AALSBaseCharacter::Multicast_OnLanded_Implementation()
+{
+	if (!IsLocallyControlled())
+	{
+		EventOnLanded();
+	}
+}
+
+void AALSBaseCharacter::Server_MantleStart_Implementation(const float MantleHeight,
+                                                          const FALSComponentAndTransform& MantleLedgeWS,
+                                                          const EALSMantleType MantleType)
+{
+	Multicast_MantleStart(MantleHeight, MantleLedgeWS, MantleType);
+}
+
+void AALSBaseCharacter::Multicast_MantleStart_Implementation(const float MantleHeight,
+                                                             const FALSComponentAndTransform& MantleLedgeWS,
+                                                             const EALSMantleType MantleType)
+{
+	if (!IsLocallyControlled())
+	{
+		MantleStart(MantleHeight, MantleLedgeWS, MantleType);
+	}
+}
+
+void AALSBaseCharacter::Server_PlayMontage_Implementation(UAnimMontage* Montage, const float Track)
+{
+	Multicast_PlayMontage(Montage, Track);
+}
+
+void AALSBaseCharacter::Multicast_PlayMontage_Implementation(UAnimMontage* Montage, const float Track)
+{
+	if (!IsLocallyControlled())
+	{
+		// Roll: Simply play a Root Motion Montage.
+		MainAnimInstance->Montage_Play(Montage, Track);
+	}
+}
+
+void AALSBaseCharacter::OnJumped_Implementation()
+{
+	Super::OnJumped_Implementation();
+	if (IsLocallyControlled())
+	{
+		EventOnJumped();
+	}
+	if (HasAuthority())
+	{
+		Multicast_OnJumped();
+	}
+}
+
+void AALSBaseCharacter::Multicast_OnJumped_Implementation()
+{
+	if (!IsLocallyControlled())
+	{
+		EventOnJumped();
+	}
+}
+
+void AALSBaseCharacter::Server_RagdollStart_Implementation()
+{
+	Multicast_RagdollStart();
+}
+
+void AALSBaseCharacter::Multicast_RagdollStart_Implementation()
+{
+	RagdollStart();
+}
+
+void AALSBaseCharacter::Server_RagdollEnd_Implementation(const FVector CharacterLocation)
+{
+	Multicast_RagdollEnd(CharacterLocation);
+}
+
+void AALSBaseCharacter::Multicast_RagdollEnd_Implementation(const FVector CharacterLocation)
+{
+	RagdollEnd();
 }
