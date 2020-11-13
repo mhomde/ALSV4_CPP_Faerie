@@ -73,7 +73,7 @@ void AALSBaseCharacter::NotifyHit(UPrimitiveComponent* MyComp,
 			SetFlightMode(EALSFlightMode::None);
 			break;
 		case EALSFlightCancelCondition::VelocityThreshold:
-			if (FlightInterruptThresholdCheck(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit))
+			if (FlightInterruptThresholdCheck())
 			{
 				SetFlightMode(EALSFlightMode::None);
 			}
@@ -85,14 +85,14 @@ void AALSBaseCharacter::NotifyHit(UPrimitiveComponent* MyComp,
 			}
 			break;
 		case EALSFlightCancelCondition::CustomOrThreshold:
-			if (FlightInterruptThresholdCheck(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit)
+			if (FlightInterruptThresholdCheck()
 				|| FlightInterruptCustomCheck(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit))
 			{
 				SetFlightMode(EALSFlightMode::None);
 			}
 			break;
 		case EALSFlightCancelCondition::CustomAndThreshold:
-			if (FlightInterruptThresholdCheck(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit)
+			if (FlightInterruptThresholdCheck()
 				&& FlightInterruptCustomCheck(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit))
 			{
 				SetFlightMode(EALSFlightMode::None);
@@ -123,8 +123,8 @@ void AALSBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// If we're in networked game, disable curved movement
-	bDisableCurvedMovement = !IsNetMode(NM_Standalone);
+	// If we're in networked game, use this to disable curved movement
+	bIsNetworked = !IsNetMode(NM_Standalone);
 
 	FOnTimelineFloat TimelineUpdated;
 	FOnTimelineEvent TimelineFinished;
@@ -656,6 +656,11 @@ float AALSBaseCharacter::GetAtmospherePressure() const
 	return AtmosphericPressureFalloff->GetFloatValue(GetAbsoluteAltitude() / TroposphereHeight);
 }
 
+FVector AALSBaseCharacter::GetInputAcceleration() const
+{
+	return GetActorRotation().UnrotateVector(ReplicatedCurrentAcceleration.GetSafeNormal());
+}
+
 void AALSBaseCharacter::SetAcceleration(const FVector& NewAcceleration)
 {
 	Acceleration = (NewAcceleration != FVector::ZeroVector || IsLocallyControlled()) ? NewAcceleration : Acceleration / 2;
@@ -937,10 +942,16 @@ void AALSBaseCharacter::UpdateCharacterMovement()
 	}
 
 	// Use the allowed gait to update the movement settings.
-	if (bDisableCurvedMovement)
+	if (bIsNetworked)
 	{
-		// Don't use curves for movement
-		UpdateDynamicMovementSettingsNetworked(AllowedGait);
+		if (bForceFullNetworkedDynamicMovement)
+		{
+			UpdateDynamicMovementSettingsFull(AllowedGait);
+		}
+		else
+		{
+			UpdateDynamicMovementSettingsNetworked(AllowedGait);
+		}
 	}
 	else
 	{
@@ -1002,7 +1013,6 @@ void AALSBaseCharacter::UpdateDynamicMovementSettingsStandalone(const EALSGait A
 	const float NewMaxSpeed = CurrentMovementSettings.GetSpeedForGait(AllowedGait);
 
 	// Update the Acceleration, Deceleration, and Ground Friction using the Movement Curve.
-	// This allows for fine control over movement behavior at each speed (May not be suitable for replication).
 	const float MappedSpeed = GetMappedSpeed();
 	const FVector CurveVec = CurrentMovementSettings.MovementCurve->GetVectorValue(MappedSpeed);
 
@@ -1074,6 +1084,71 @@ void AALSBaseCharacter::UpdateDynamicMovementSettingsNetworked(const EALSGait Al
 			if (GetCharacterMovement()->MaxSwimSpeed != NewMaxSpeed)
 			{
 				MyCharacterMovementComponent->SetMaxSwimmingSpeed(NewMaxSpeed);
+			}
+		}
+		else
+		{
+			GetCharacterMovement()->MaxSwimSpeed = NewMaxSpeed;
+		}
+	}
+}
+
+void AALSBaseCharacter::UpdateDynamicMovementSettingsFull(const EALSGait AllowedGait)
+{
+	// Get the Current Movement Settings.
+	CurrentMovementSettings = GetTargetMovementSettings();
+	const float NewMaxSpeed = CurrentMovementSettings.GetSpeedForGait(AllowedGait);
+
+	// Update the Acceleration, Deceleration, and Ground Friction using the Movement Curve.
+	const float MappedSpeed = GetMappedSpeed();
+	const FVector CurveVec = CurrentMovementSettings.MovementCurve->GetVectorValue(MappedSpeed);
+
+	const auto CurrentMode = GetCharacterMovement()->MovementMode;
+	if (CurrentMode == MOVE_Walking || CurrentMode == MOVE_NavWalking)
+	{
+		// Update the Character Max Walk Speed to the configured speeds based on the currently Allowed Gait.
+		if (IsLocallyControlled() || HasAuthority())
+		{
+			if (GetCharacterMovement()->MaxWalkSpeed != NewMaxSpeed)
+			{
+				MyCharacterMovementComponent->SetMaxWalkingSpeed(NewMaxSpeed);
+				GetCharacterMovement()->MaxAcceleration = CurveVec.X;
+				GetCharacterMovement()->BrakingDecelerationWalking = CurveVec.Y;
+				GetCharacterMovement()->GroundFriction = CurveVec.Z;
+			}
+		}
+		else
+		{
+			GetCharacterMovement()->MaxWalkSpeed = NewMaxSpeed;
+		}
+	}
+	else if (CurrentMode == MOVE_Flying)
+	{
+		// Update the Character Max Walk Speed to the configured speeds based on the currently Allowed Gait.
+		if (IsLocallyControlled() || HasAuthority())
+		{
+			if (GetCharacterMovement()->MaxFlySpeed != NewMaxSpeed)
+			{
+				MyCharacterMovementComponent->SetMaxFlyingSpeed(NewMaxSpeed);
+				GetCharacterMovement()->MaxAcceleration = CurveVec.X;
+				GetCharacterMovement()->BrakingDecelerationFlying = CurveVec.Y;
+			}
+		}
+		else
+		{
+			GetCharacterMovement()->MaxFlySpeed = NewMaxSpeed;
+		}
+	}
+	else if (CurrentMode == MOVE_Swimming)
+	{
+		// Update the Character Max Walk Speed to the configured speeds based on the currently Allowed Gait.
+		if (IsLocallyControlled() || HasAuthority())
+		{
+			if (GetCharacterMovement()->MaxSwimSpeed != NewMaxSpeed)
+			{
+				MyCharacterMovementComponent->SetMaxSwimmingSpeed(NewMaxSpeed);
+				GetCharacterMovement()->MaxAcceleration = CurveVec.X;
+				GetCharacterMovement()->BrakingDecelerationSwimming = CurveVec.Y;
 			}
 		}
 		else
@@ -1177,65 +1252,56 @@ void AALSBaseCharacter::UpdateFallingRotation(const float DeltaTime)
 
 void AALSBaseCharacter::UpdateFlightRotation(const float DeltaTime)
 {
-	const float MaxRollDegree = 40.f;
-	const float MaxPitchDegree = 40.f;
-	const float CheckAltitude = 200.f;
-
-	// Map speed to an unit scaler.
-	const float Alpha_Velocity = FMath::GetMappedRangeValueClamped({0.f, GetCharacterMovement()->MaxFlySpeed},
-																   {0.f, 1.f},
-																   GetVelocity().GetAbs().Size());
+	const float SpeedCache = GetMappedSpeed();
+	const float CheckAltitude = SpeedCache * 100.f;
 
 	// Map distant to ground to a unit scaler.
 	const float Alpha_Altitude = FMath::GetMappedRangeValueClamped({0.f, CheckAltitude},
 															       {0.f, 1.f},
 															       RelativeAltitude);
-
+	
 	// Combine unit scalers equal to smaller.
-	const float RotationAlpha = Alpha_Altitude * Alpha_Velocity;
+	const float RotationAlpha = Alpha_Altitude * (SpeedCache / 3);
 
 	// Calculate input leaning.
-	const FVector InputLean = FVector::ZeroVector; // GetMovementInput() * FVector{MaxPitchDegree, MaxRollDegree, 0} * RotationAlpha;
+	const FVector Lean = GetInputAcceleration() * MaxLean * RotationAlpha;
 
-	// Calculate roll and pitch by interping input lean by RotationAlpha.
-	const float Roll = 0; //FMath::FInterpTo(GetActorRotation().Roll, InputLean.Y, DeltaTime, MaxFlightRotationRate);
-	const float Pitch = 0; //FMath::FInterpTo(GetActorRotation().Pitch, -InputLean.X, DeltaTime, MaxFlightRotationRate);
+	const float Pitch = FMath::FInterpTo(GetActorRotation().Pitch, Lean.X * -1, DeltaTime, MaxFlightRotationRate);
+	const float Roll = FMath::FInterpTo(GetActorRotation().Roll, Lean.Y, DeltaTime, MaxFlightRotationRate);
 
-	if (RotationMode == EALSRotationMode::VelocityDirection || RotationMode == EALSRotationMode::LookingDirection)
+	if (bHasMovementInput)
 	{
-		// Velocity / Looking Direction Rotation
-		if (MovementInputAmount == 0)
+		if (RotationMode == EALSRotationMode::VelocityDirection || RotationMode == EALSRotationMode::LookingDirection)
 		{
-			SmoothCharacterRotation({0, GetActorRotation().Yaw, 0}, 0.0f, 2, DeltaTime);
-		}
-		else
-		{
-			const float InterpSpeed = FMath::GetMappedRangeValueClamped({0, GetCharacterMovement()->MaxFlySpeed},
-																        {0.1, MaxFlightRotationRate},
-																        GetVelocity().GetAbs().Size());
+			// Velocity / Looking Direction Rotation
+			const float InterpSpeed = FMath::GetMappedRangeValueClamped({0, 3}, {0.1, MaxFlightRotationRate}, SpeedCache);
 			SmoothCharacterRotation({Pitch, AimingRotation.Yaw, Roll}, 0.0f, InterpSpeed, DeltaTime);
 		}
+		else if (RotationMode == EALSRotationMode::Aiming)
+		{
+			// Aiming Rotation
+			SmoothCharacterRotation({Pitch, AimingRotation.Yaw, Roll / 2}, 0.0f, MaxFlightRotationRate, DeltaTime);
+		}
 	}
-	else if (RotationMode == EALSRotationMode::Aiming)
+	else
 	{
-		// Aiming Rotation
-		SmoothCharacterRotation({FMath::ClampAngle(Pitch, -45, 45), AimingRotation.Yaw, Roll / 2}, 0.0f, 15.0f, DeltaTime);
+		SmoothCharacterRotation({0, GetActorRotation().Yaw, 0}, 0.0f, MaxFlightRotationRate, DeltaTime);
 	}
 	InAirRotation = GetActorRotation();
 }
 
 void AALSBaseCharacter::UpdateSwimmingRotation(const float DeltaTime)
 {
-	SmoothCharacterRotation({0.0f, AimingRotation.Yaw, 0.0f}, 0.0f, 2.5f, DeltaTime);
+	float const Lean = FMath::GetMappedRangeValueUnclamped({0, 3}, {0, 90}, GetMappedSpeed());
+
+	SmoothCharacterRotation({Lean * -GetInputAcceleration().X, AimingRotation.Yaw, 0.0f}, 0.f, 2.5f, DeltaTime);
 }
 
-bool AALSBaseCharacter::FlightInterruptThresholdCheck(UPrimitiveComponent* MyComp, AActor* Other,
-	UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse,
-	const FHitResult& Hit) const
+bool AALSBaseCharacter::FlightInterruptThresholdCheck() const
 {
 	float MyVelLen;
 	FVector MyVelDir;
-	MyComp->GetComponentVelocity().GetAbs().ToDirectionAndLength(MyVelDir, MyVelLen);
+	GetVelocity().GetAbs().ToDirectionAndLength(MyVelDir, MyVelLen);
 	return MyVelLen >= FlightInterruptThreshold;
 }
 
@@ -1442,24 +1508,24 @@ void AALSBaseCharacter::MantleEnd()
 float AALSBaseCharacter::GetMappedSpeed() const
 {
 	// Map the character's current speed to the configured movement speeds with a range of 0-3,
-	// with 0 = stopped, 1 = the Walk Speed, 2 = the Run Speed, and 3 = the Sprint Speed.
+	// with 0 = stopped, 1 = the Slow Speed, 2 = the Normal Speed, and 3 = the Fast Speed.
 	// This allows us to vary the movement speeds but still use the mapped range in calculations for consistent results
 
-	const float LocWalkSpeed = CurrentMovementSettings.SlowSpeed;
-	const float LocRunSpeed = CurrentMovementSettings.NormalSpeed;
-	const float LocSprintSpeed = CurrentMovementSettings.FastSpeed;
+	const float LocSlowSpeed = CurrentMovementSettings.SlowSpeed;
+	const float LocNormalSpeed = CurrentMovementSettings.NormalSpeed;
+	const float LocFastSpeed = CurrentMovementSettings.FastSpeed;
 
-	if (Speed > LocRunSpeed)
+	if (Speed > LocNormalSpeed)
 	{
-		return FMath::GetMappedRangeValueClamped({LocRunSpeed, LocSprintSpeed}, {2.0f, 3.0f}, Speed);
+		return FMath::GetMappedRangeValueClamped({LocNormalSpeed, LocFastSpeed}, {2.0f, 3.0f}, Speed);
 	}
 
-	if (Speed > LocWalkSpeed)
+	if (Speed > LocSlowSpeed)
 	{
-		return FMath::GetMappedRangeValueClamped({LocWalkSpeed, LocRunSpeed}, {1.0f, 2.0f}, Speed);
+		return FMath::GetMappedRangeValueClamped({LocSlowSpeed, LocNormalSpeed}, {1.0f, 2.0f}, Speed);
 	}
 
-	return FMath::GetMappedRangeValueClamped({0.0f, LocWalkSpeed}, {0.0f, 1.0f}, Speed);
+	return FMath::GetMappedRangeValueClamped({0.0f, LocSlowSpeed}, {0.0f, 1.0f}, Speed);
 }
 
 EALSGait AALSBaseCharacter::GetAllowedGait() const
@@ -1556,7 +1622,7 @@ float AALSBaseCharacter::CalculateFlightRotationRate() const
 
 void AALSBaseCharacter::UpdateRelativeAltitude()
 {
-	RelativeAltitude = FlightDistanceCheck(TroposphereHeight, FVector(0, 0, -1));
+	RelativeAltitude = FlightDistanceCheck(TroposphereHeight, FVector::DownVector);
 }
 
 float AALSBaseCharacter::FlightDistanceCheck(const float CheckDistance, const FVector Direction) const

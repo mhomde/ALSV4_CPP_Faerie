@@ -285,6 +285,10 @@ public:
 	UFUNCTION(BlueprintGetter, Category = "ALS|Essential Information")
 	FVector GetAcceleration() const { return Acceleration; }
 
+	// Gets the input direction in local space.
+	UFUNCTION(BlueprintGetter, Category = "ALS|Essential Information")
+	FVector GetInputAcceleration() const;
+	
 	UFUNCTION(BlueprintCallable, Category = "ALS|Essential Information")
 	void SetAcceleration(const FVector& NewAcceleration);
 
@@ -348,9 +352,15 @@ protected:
 
 	void UpdateCharacterMovement();
 	void UpdateFlightMovement(float DeltaTime);
-
-	void UpdateDynamicMovementSettingsNetworked(EALSGait AllowedGait);
+	
+	// This is the not replicated version that uses the curve data, since desync isn't an issue when standalone.
 	void UpdateDynamicMovementSettingsStandalone(EALSGait AllowedGait);
+	
+	// This is the shorter replicated version that doesn't use the additional curve data.
+	void UpdateDynamicMovementSettingsNetworked(EALSGait AllowedGait);
+
+	// A complete update that is replicated and uses curves. Only use if you want to risk the desync. Enabled with bForceFullNetworkedDynamicMovement
+	void UpdateDynamicMovementSettingsFull(EALSGait AllowedGait);
 
 	void UpdateGroundedRotation(float DeltaTime);
 	void UpdateFallingRotation(float DeltaTime);
@@ -363,14 +373,7 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintPure, Category = "ALS|Flight")
     bool FlightCheck();
 
-	bool FlightInterruptThresholdCheck(UPrimitiveComponent* MyComp,
-                           AActor* Other,
-                           UPrimitiveComponent* OtherComp,
-                           bool bSelfMoved,
-                           FVector HitLocation,
-                           FVector HitNormal,
-                           FVector NormalImpulse,
-                           const FHitResult& Hit) const;
+	bool FlightInterruptThresholdCheck() const;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "ALS|Flight")
 	bool FlightInterruptCustomCheck(UPrimitiveComponent* MyComp,
@@ -431,6 +434,15 @@ protected:
 	/* Custom movement component*/
 	UALSCharacterMovementComponent* MyCharacterMovementComponent;
 
+	/* Optimization */
+
+	/*
+	 By default, use of the movement curves is skipped when not standalone to avoid net corrections and desync
+	 This overrides that and forces it on. Useful for testing.
+	 */
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "ALS|Optimization")
+	bool bForceFullNetworkedDynamicMovement;
+	
 	/** Input */
 
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "ALS|Input")
@@ -441,18 +453,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "ALS|Input")
 	EALSStance DesiredStance = EALSStance::Standing;
-
-	// @TODO what is this for. delete???
-	UPROPERTY(Category = "ALS|Input", BlueprintReadOnly)
-	int32 TimesPressedStance = 0;
-
-	// @TODO what is this for. delete???
-	UPROPERTY(Category = "ALS|Input", BlueprintReadOnly)
-	bool bBreakFall = false;
-
-	// @TODO what is this for. delete???
-	UPROPERTY(Category = "ALS|Input", BlueprintReadOnly)
-	bool bSprintHeld = false;
 
 	/** Movement System */
 
@@ -549,9 +549,12 @@ protected:
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "ALS|Flight")
 	bool bFlightEnabled = false;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|Flight")
+	FVector MaxLean = {40, 40, 0};
+	
 	// Maximum rotation rate when traveling at RotationVelocityMax.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|Flight")
-	float MaxFlightRotationRate = 5.f;
+	float MaxFlightRotationRate = 3.f;
 
 	// The max degree that flight input will consider forward.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Flight", Meta = (UIMin = 0, UIMax = 90))
@@ -586,7 +589,7 @@ protected:
 	EALSFlightCancelCondition FlightCancelCondition;
 
 	// The velocity of the hit required to trigger a positive FlightInterruptThresholdCheck.
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight", EditCondition = "FlightCancelCondition == EALSFlightCancelCondition::VelocityThreshold || FlightCancelCondition == EALSFlightCancelCondition::CustomOrThreshold || FlightCancelCondition == EALSFlightCancelCondition::CustomAndThreshold")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight", meta = (EditCondition = "FlightCancelCondition == EALSFlightCancelCondition::VelocityThreshold || FlightCancelCondition == EALSFlightCancelCondition::CustomOrThreshold || FlightCancelCondition == EALSFlightCancelCondition::CustomAndThreshold"))
 	float FlightInterruptThreshold = 600;
 
 	/** Mantle System */
@@ -618,7 +621,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Mantle System")
 	FTransform MantleAnimatedStartOffset;
 
-	// Enables automatically vaulting over short obstacles, when moving toward them.
+	/**  Enables automatically vaulting over short obstacles, when moving toward them. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
 	bool bUseAutoVault = true;
 	
@@ -690,8 +693,7 @@ protected:
 	/* Smooth out aiming by interping control rotation*/
 	FRotator AimingRotation;
 
-	/** We won't use curve based movement on networked games */
-	bool bDisableCurvedMovement = false;
+	bool bIsNetworked = false;
 
 	/** AHHH, I hate this, but I wanted to move View Mode to the player only file, and this is the *one* workaround I had to make. */
 	bool RestrictAiming;
