@@ -350,17 +350,27 @@ protected:
 
 	void SetEssentialValues(float DeltaTime);
 
-	void UpdateCharacterMovement();
+	void UpdateCharacterMovement(float DeltaTime);
+
+	// Adjusts walking speed to account for player temperature and ground incline, where extremes of each slow movement.
+	float AdjustNewWalkingSpeed(float DeltaTime, float NewSpeed);
+
+	// Adjusts walking speed to account for player temperature.
+	float AdjustNewFlyingSpeed(float DeltaTime, float NewSpeed);
+
+	// Adjusts walking speed to account for player temperature.
+	float AdjustNewSwimmingSpeed(float DeltaTime, float NewSpeed);
+	
 	void UpdateFlightMovement(float DeltaTime);
 	
 	// This is the not replicated version that uses the curve data, since desync isn't an issue when standalone.
-	void UpdateDynamicMovementSettingsStandalone(EALSGait AllowedGait);
+	void UpdateDynamicMovementSettingsStandalone(float DeltaTime, EALSGait AllowedGait);
 	
 	// This is the shorter replicated version that doesn't use the additional curve data.
-	void UpdateDynamicMovementSettingsNetworked(EALSGait AllowedGait);
+	void UpdateDynamicMovementSettingsNetworked(float DeltaTime, EALSGait AllowedGait);
 
 	// A complete update that is replicated and uses curves. Only use if you want to risk the desync. Enabled with bForceFullNetworkedDynamicMovement
-	void UpdateDynamicMovementSettingsFull(EALSGait AllowedGait);
+	void UpdateDynamicMovementSettingsFull(float DeltaTime, EALSGait AllowedGait);
 
 	void UpdateGroundedRotation(float DeltaTime);
 	void UpdateFallingRotation(float DeltaTime);
@@ -465,6 +475,23 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Movement System")
 	FALSMovementStateSettings MovementData;
 
+	/**
+	* All movement speeds are multiplied against this curve. Represents how much the cold/hot slows down movement.
+	* X = Grounded curve.
+	* Y = Flying curve.
+	* Z = Swimming curve.
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "ALS|Movement System")
+	UCurveVector* TemperatureAffectCurve;
+
+	// How much walking speed is affected by the incline of the floor.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Movement System")
+	float WalkingSpeedInclineBias = 2;
+	
+	// The speed that the character adjusts to changes in walking incline.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Movement System")
+	float WalkingSpeedInterpRate = 4;
+		
 	/** Components */
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Components")
@@ -546,7 +573,7 @@ protected:
 
 	/** Flight System */
 
-	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "ALS|Flight")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight")
 	bool bFlightEnabled = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|Flight")
@@ -677,12 +704,10 @@ protected:
 
 	/** Cached Variables */
 
-	// Altitude variables for flight calculations.
-	float SeaAltitude, TroposphereHeight, RelativeAltitude;
-
 	FVector PreviousVelocity;
 
 	float PreviousAimYaw = 0.0f;
+	float MovementMultiplier = 1;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Cached Variables")
 	UALSCharacterAnimInstance* MainAnimInstance = nullptr;
@@ -696,5 +721,20 @@ protected:
 	bool bIsNetworked = false;
 
 	/** AHHH, I hate this, but I wanted to move View Mode to the player only file, and this is the *one* workaround I had to make. */
-	bool RestrictAiming;
+	bool RestrictAiming = false;
+
+	// ** WORLD INTERACTION ** //
+	// This is where various optional features I've added are implemented.
+
+	// Altitude variables for flight calculations.
+	float SeaAltitude, TroposphereHeight, RelativeAltitude;
+	
+private:
+	// The current temperature of the player. Cached here, but should rely on another system for proper implementation.
+	float Temperature;
+
+public:
+	// Utility to implement temperature system. Call this to update character temperature.
+	UFUNCTION(BlueprintCallable, Category = "World Interaction")
+	void SetTemperature(float NewTemperature);
 };

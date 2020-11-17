@@ -201,7 +201,7 @@ void AALSBaseCharacter::Tick(const float DeltaTime)
 	{
 	case EALSMovementState::None: break;
 	case EALSMovementState::Grounded: 
-		UpdateCharacterMovement();
+		UpdateCharacterMovement(DeltaTime);
 		UpdateGroundedRotation(DeltaTime);
 		
 		// Perform a mantle check for short objects while movement input is pressed.
@@ -221,7 +221,7 @@ void AALSBaseCharacter::Tick(const float DeltaTime)
 		break;
 	case EALSMovementState::Flight:
 		UpdateRelativeAltitude();
-		UpdateCharacterMovement();
+		UpdateCharacterMovement(DeltaTime);
 		UpdateFlightRotation(DeltaTime);
 		if (HasAuthority() || GetLocalRole() == ROLE_AutonomousProxy)
 		{
@@ -229,7 +229,7 @@ void AALSBaseCharacter::Tick(const float DeltaTime)
 		}
 		break;
 	case EALSMovementState::Swimming:
-		UpdateCharacterMovement();
+		UpdateCharacterMovement(DeltaTime);
 		UpdateSwimmingRotation(DeltaTime);
 		break;
 	case EALSMovementState::Mantling: break;
@@ -928,7 +928,7 @@ void AALSBaseCharacter::SetEssentialValues(const float DeltaTime)
 	SetAimYawRate(FMath::Abs((AimingRotation.Yaw - PreviousAimYaw) / DeltaTime));
 }
 
-void AALSBaseCharacter::UpdateCharacterMovement()
+void AALSBaseCharacter::UpdateCharacterMovement(const float DeltaTime)
 {
 	// Set the Allowed Gait
 	const EALSGait AllowedGait = GetAllowedGait();
@@ -946,18 +946,65 @@ void AALSBaseCharacter::UpdateCharacterMovement()
 	{
 		if (bForceFullNetworkedDynamicMovement)
 		{
-			UpdateDynamicMovementSettingsFull(AllowedGait);
+			UpdateDynamicMovementSettingsFull(DeltaTime, AllowedGait);
 		}
 		else
 		{
-			UpdateDynamicMovementSettingsNetworked(AllowedGait);
+			UpdateDynamicMovementSettingsNetworked(DeltaTime, AllowedGait);
 		}
 	}
 	else
 	{
 		// Use curves for movement
-		UpdateDynamicMovementSettingsStandalone(AllowedGait);
+		UpdateDynamicMovementSettingsStandalone(DeltaTime, AllowedGait);
 	}
+}
+
+float AALSBaseCharacter::AdjustNewWalkingSpeed(const float DeltaTime, const float NewSpeed)
+{
+	float OutSpeed = NewSpeed;
+	// Adjust by ground incline
+	if (GetVelocity() == FVector::ZeroVector)
+	{
+		MovementMultiplier = 1.f;
+	}
+	else
+	{
+		const float TargetMovementMultiplier = FMath::Pow(GetCharacterMovement()->CurrentFloor.HitResult.Normal.Z, WalkingSpeedInclineBias);
+		MovementMultiplier = FMath::FInterpTo(MovementMultiplier, TargetMovementMultiplier, DeltaTime, WalkingSpeedInterpRate);
+		OutSpeed *= MovementMultiplier;
+	}
+	// Adjust by temperature
+	if (TemperatureAffectCurve)
+	{
+		OutSpeed *= TemperatureAffectCurve->GetVectorValue(Temperature).X;
+	}
+	// Return adjusted speed
+	return OutSpeed;
+}
+
+float AALSBaseCharacter::AdjustNewFlyingSpeed(const float DeltaTime, const float NewSpeed)
+{
+	float OutSpeed = NewSpeed;
+	// Adjust by temperature
+	if (TemperatureAffectCurve)
+	{
+		OutSpeed *= TemperatureAffectCurve->GetVectorValue(Temperature).Y;
+	}
+	// Return adjusted speed
+	return OutSpeed;
+}
+
+float AALSBaseCharacter::AdjustNewSwimmingSpeed(const float DeltaTime, const float NewSpeed)
+{
+	float OutSpeed = NewSpeed;
+	// Adjust by temperature
+	if (TemperatureAffectCurve)
+	{
+		OutSpeed *= TemperatureAffectCurve->GetVectorValue(Temperature).Z;
+	}
+	// Return adjusted speed
+	return OutSpeed;
 }
 
 void AALSBaseCharacter::UpdateFlightMovement(float DeltaTime)
@@ -997,16 +1044,21 @@ void AALSBaseCharacter::UpdateFlightMovement(float DeltaTime)
 		FlightInput = GroundPressure * 0.5f + -FlightStrengthActive;
 		break;
 	case EALSFlightMode::Hovering:
-		FlightInput = GroundPressure;
+		FlightInput = (GroundPressure + 0.5) / 1.5;
 		break;
 	default: return;
 	}
 
+	if (TemperatureAffectCurve)
+	{
+		FlightInput *= TemperatureAffectCurve->GetVectorValue(Temperature).Y;
+	}
+	
 	const FRotator DirRotator(0.0f, AimingRotation.Yaw, 0.0f);
 	AddMovementInput(UKismetMathLibrary::GetUpVector(DirRotator), FlightInput, true);
 }
 
-void AALSBaseCharacter::UpdateDynamicMovementSettingsStandalone(const EALSGait AllowedGait)
+void AALSBaseCharacter::UpdateDynamicMovementSettingsStandalone(const float DeltaTime, const EALSGait AllowedGait)
 {
 	// Get the Current Movement Settings.
 	CurrentMovementSettings = GetTargetMovementSettings();
@@ -1020,26 +1072,26 @@ void AALSBaseCharacter::UpdateDynamicMovementSettingsStandalone(const EALSGait A
 	if (CurrentMode == MOVE_Walking || CurrentMode == MOVE_NavWalking)
 	{
 		// Update the Character Max Walk Speed to the configured speeds based on the currently Allowed Gait.
-		MyCharacterMovementComponent->SetMaxWalkingSpeed(NewMaxSpeed);
+		MyCharacterMovementComponent->SetMaxWalkingSpeed(AdjustNewWalkingSpeed(DeltaTime, NewMaxSpeed));
 		GetCharacterMovement()->MaxAcceleration = CurveVec.X;
 		GetCharacterMovement()->BrakingDecelerationWalking = CurveVec.Y;
 		GetCharacterMovement()->GroundFriction = CurveVec.Z;
 	}
 	else if (CurrentMode == MOVE_Flying)
 	{
-		MyCharacterMovementComponent->SetMaxFlyingSpeed(NewMaxSpeed);
+		MyCharacterMovementComponent->SetMaxFlyingSpeed(AdjustNewFlyingSpeed(DeltaTime, NewMaxSpeed));
 		GetCharacterMovement()->MaxAcceleration = CurveVec.X;
 		GetCharacterMovement()->BrakingDecelerationFlying = CurveVec.Y;
 	}
 	else if (CurrentMode == MOVE_Swimming)
 	{
-		MyCharacterMovementComponent->SetMaxSwimmingSpeed(NewMaxSpeed);
+		MyCharacterMovementComponent->SetMaxSwimmingSpeed(AdjustNewSwimmingSpeed(DeltaTime, NewMaxSpeed));
 		GetCharacterMovement()->MaxAcceleration = CurveVec.X;
 		GetCharacterMovement()->BrakingDecelerationSwimming = CurveVec.Y;
 	}
 }
 
-void AALSBaseCharacter::UpdateDynamicMovementSettingsNetworked(const EALSGait AllowedGait)
+void AALSBaseCharacter::UpdateDynamicMovementSettingsNetworked(const float DeltaTime, const EALSGait AllowedGait)
 {
 	// Get the Current Movement Settings.
 	CurrentMovementSettings = GetTargetMovementSettings();
@@ -1048,52 +1100,55 @@ void AALSBaseCharacter::UpdateDynamicMovementSettingsNetworked(const EALSGait Al
 	const auto CurrentMode = GetCharacterMovement()->MovementMode;
 	if (CurrentMode == MOVE_Walking || CurrentMode == MOVE_NavWalking)
 	{
+		const float NewWalkSpeed = AdjustNewWalkingSpeed(DeltaTime, NewMaxSpeed);
 		// Update the Character Max Walk Speed to the configured speeds based on the currently Allowed Gait.
 		if (IsLocallyControlled() || HasAuthority())
 		{
-			if (GetCharacterMovement()->MaxWalkSpeed != NewMaxSpeed)
+			if (GetCharacterMovement()->MaxWalkSpeed != NewWalkSpeed)
 			{
-				MyCharacterMovementComponent->SetMaxWalkingSpeed(NewMaxSpeed);
+				MyCharacterMovementComponent->SetMaxWalkingSpeed(NewWalkSpeed);
 			}
 		}
 		else
 		{
-			GetCharacterMovement()->MaxWalkSpeed = NewMaxSpeed;
+			GetCharacterMovement()->MaxWalkSpeed = NewWalkSpeed;
 		}
 	}
 	else if (CurrentMode == MOVE_Flying)
 	{
+		const float NewFlySpeed = AdjustNewFlyingSpeed(DeltaTime, NewMaxSpeed);
 		// Update the Character Max Walk Speed to the configured speeds based on the currently Allowed Gait.
 		if (IsLocallyControlled() || HasAuthority())
 		{
-			if (GetCharacterMovement()->MaxFlySpeed != NewMaxSpeed)
+			if (GetCharacterMovement()->MaxFlySpeed != NewFlySpeed)
 			{
-				MyCharacterMovementComponent->SetMaxFlyingSpeed(NewMaxSpeed);
+				MyCharacterMovementComponent->SetMaxFlyingSpeed(NewFlySpeed);
 			}
 		}
 		else
 		{
-			GetCharacterMovement()->MaxFlySpeed = NewMaxSpeed;
+			GetCharacterMovement()->MaxFlySpeed = NewFlySpeed;
 		}
 	}
 	else if (CurrentMode == MOVE_Swimming)
 	{
+		const float NewSwimSpeed = AdjustNewSwimmingSpeed(DeltaTime, NewMaxSpeed);
 		// Update the Character Max Walk Speed to the configured speeds based on the currently Allowed Gait.
 		if (IsLocallyControlled() || HasAuthority())
 		{
-			if (GetCharacterMovement()->MaxSwimSpeed != NewMaxSpeed)
+			if (GetCharacterMovement()->MaxSwimSpeed != NewSwimSpeed)
 			{
-				MyCharacterMovementComponent->SetMaxSwimmingSpeed(NewMaxSpeed);
+				MyCharacterMovementComponent->SetMaxSwimmingSpeed(NewSwimSpeed);
 			}
 		}
 		else
 		{
-			GetCharacterMovement()->MaxSwimSpeed = NewMaxSpeed;
+			GetCharacterMovement()->MaxSwimSpeed = NewSwimSpeed;
 		}
 	}
 }
 
-void AALSBaseCharacter::UpdateDynamicMovementSettingsFull(const EALSGait AllowedGait)
+void AALSBaseCharacter::UpdateDynamicMovementSettingsFull(const float DeltaTime, const EALSGait AllowedGait)
 {
 	// Get the Current Movement Settings.
 	CurrentMovementSettings = GetTargetMovementSettings();
@@ -1106,12 +1161,14 @@ void AALSBaseCharacter::UpdateDynamicMovementSettingsFull(const EALSGait Allowed
 	const auto CurrentMode = GetCharacterMovement()->MovementMode;
 	if (CurrentMode == MOVE_Walking || CurrentMode == MOVE_NavWalking)
 	{
+		const float NewWalkSpeed = AdjustNewWalkingSpeed(DeltaTime, NewMaxSpeed);
+		
 		// Update the Character Max Walk Speed to the configured speeds based on the currently Allowed Gait.
 		if (IsLocallyControlled() || HasAuthority())
 		{
-			if (GetCharacterMovement()->MaxWalkSpeed != NewMaxSpeed)
+			if (GetCharacterMovement()->MaxWalkSpeed != NewWalkSpeed)
 			{
-				MyCharacterMovementComponent->SetMaxWalkingSpeed(NewMaxSpeed);
+				MyCharacterMovementComponent->SetMaxWalkingSpeed(NewWalkSpeed);
 				GetCharacterMovement()->MaxAcceleration = CurveVec.X;
 				GetCharacterMovement()->BrakingDecelerationWalking = CurveVec.Y;
 				GetCharacterMovement()->GroundFriction = CurveVec.Z;
@@ -1119,41 +1176,45 @@ void AALSBaseCharacter::UpdateDynamicMovementSettingsFull(const EALSGait Allowed
 		}
 		else
 		{
-			GetCharacterMovement()->MaxWalkSpeed = NewMaxSpeed;
+			GetCharacterMovement()->MaxWalkSpeed = NewWalkSpeed;
 		}
 	}
 	else if (CurrentMode == MOVE_Flying)
 	{
+		const float NewFlySpeed = AdjustNewFlyingSpeed(DeltaTime, NewMaxSpeed);
+
 		// Update the Character Max Walk Speed to the configured speeds based on the currently Allowed Gait.
 		if (IsLocallyControlled() || HasAuthority())
 		{
-			if (GetCharacterMovement()->MaxFlySpeed != NewMaxSpeed)
+			if (GetCharacterMovement()->MaxFlySpeed != NewFlySpeed)
 			{
-				MyCharacterMovementComponent->SetMaxFlyingSpeed(NewMaxSpeed);
+				MyCharacterMovementComponent->SetMaxFlyingSpeed(NewFlySpeed);
 				GetCharacterMovement()->MaxAcceleration = CurveVec.X;
 				GetCharacterMovement()->BrakingDecelerationFlying = CurveVec.Y;
 			}
 		}
 		else
 		{
-			GetCharacterMovement()->MaxFlySpeed = NewMaxSpeed;
+			GetCharacterMovement()->MaxFlySpeed = NewFlySpeed;
 		}
 	}
 	else if (CurrentMode == MOVE_Swimming)
 	{
+		const float NewSwimSpeed = AdjustNewSwimmingSpeed(DeltaTime, NewMaxSpeed);
+
 		// Update the Character Max Walk Speed to the configured speeds based on the currently Allowed Gait.
 		if (IsLocallyControlled() || HasAuthority())
 		{
-			if (GetCharacterMovement()->MaxSwimSpeed != NewMaxSpeed)
+			if (GetCharacterMovement()->MaxSwimSpeed != NewSwimSpeed)
 			{
-				MyCharacterMovementComponent->SetMaxSwimmingSpeed(NewMaxSpeed);
+				MyCharacterMovementComponent->SetMaxSwimmingSpeed(NewSwimSpeed);
 				GetCharacterMovement()->MaxAcceleration = CurveVec.X;
 				GetCharacterMovement()->BrakingDecelerationSwimming = CurveVec.Y;
 			}
 		}
 		else
 		{
-			GetCharacterMovement()->MaxSwimSpeed = NewMaxSpeed;
+			GetCharacterMovement()->MaxSwimSpeed = NewSwimSpeed;
 		}
 	}
 }
@@ -1662,28 +1723,9 @@ void AALSBaseCharacter::LimitRotation(const float AimYawMin, const float AimYawM
 	}
 }
 
-void AALSBaseCharacter::ReplicatedRagdollStart()
+void AALSBaseCharacter::SetTemperature(const float NewTemperature)
 {
-	if (HasAuthority())
-	{
-		Multicast_RagdollStart();
-	}
-	else
-	{
-		Server_RagdollStart();
-	}
-}
-
-void AALSBaseCharacter::ReplicatedRagdollEnd()
-{
-	if (HasAuthority())
-	{
-		Multicast_RagdollEnd(GetActorLocation());
-	}
-	else
-	{
-		Server_RagdollEnd(GetActorLocation());
-	}
+	Temperature = NewTemperature;
 }
 
 //**		VARIABLE REPLICATION		**//
@@ -1715,6 +1757,30 @@ void AALSBaseCharacter::Replicated_PlayMontage_Implementation(UAnimMontage* Mont
 	// Roll: Simply play a Root Motion Montage.
 	MainAnimInstance->Montage_Play(Montage, Track);
 	Server_PlayMontage(Montage, Track);
+}
+
+void AALSBaseCharacter::ReplicatedRagdollStart()
+{
+	if (HasAuthority())
+	{
+		Multicast_RagdollStart();
+	}
+	else
+	{
+		Server_RagdollStart();
+	}
+}
+
+void AALSBaseCharacter::ReplicatedRagdollEnd()
+{
+	if (HasAuthority())
+	{
+		Multicast_RagdollEnd(GetActorLocation());
+	}
+	else
+	{
+		Server_RagdollEnd(GetActorLocation());
+	}
 }
 
 void AALSBaseCharacter::Server_SetMeshLocationDuringRagdoll_Implementation(const FVector MeshLocation)
