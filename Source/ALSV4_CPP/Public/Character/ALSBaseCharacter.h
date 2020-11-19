@@ -54,6 +54,9 @@ public:
 						   FVector NormalImpulse,
 						   const FHitResult& Hit) override;
 
+	// We are overriding this to implement custom handling for flight logic.
+	virtual void AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce = false) override;
+
 	/** Ragdoll System */
 
 	/** Implement on BP to get required get up animation according to character's state */
@@ -378,9 +381,14 @@ protected:
 	void UpdateSwimmingRotation(float DeltaTime);
 
 	/** Flight System */
+
+	/** This must be overriden to setup custom conditions for allowing character flight. By default this checks for
+	 * weight, and temperature limits, and calls the BP implementable version of this, as well. */
+	UFUNCTION(BlueprintCallable, Category = "ALS|Flight")
+	virtual bool CanFly();
 	
-	/** This must be overriden to setup conditions for selective allowing character flight. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintPure, Category = "ALS|Flight")
+	/** This must be overriden to setup custom conditions for allowing character flight from blueprint. */
+	UFUNCTION(BlueprintImplementableEvent, Category = "ALS|Flight")
     bool FlightCheck();
 
 	bool FlightInterruptThresholdCheck() const;
@@ -450,7 +458,7 @@ protected:
 	 By default, use of the movement curves is skipped when not standalone to avoid net corrections and desync
 	 This overrides that and forces it on. Useful for testing.
 	 */
-	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "ALS|Optimization")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Optimization")
 	bool bForceFullNetworkedDynamicMovement;
 	
 	/** Input */
@@ -474,15 +482,6 @@ protected:
 	
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Movement System")
 	FALSMovementStateSettings MovementData;
-
-	/**
-	* All movement speeds are multiplied against this curve. Represents how much the cold/hot slows down movement.
-	* X = Grounded curve.
-	* Y = Flying curve.
-	* Z = Swimming curve.
-	*/
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|Movement System")
-	UCurveVector* TemperatureAffectCurve;
 
 	// How much walking speed is affected by the incline of the floor.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Movement System")
@@ -573,9 +572,15 @@ protected:
 
 	/** Flight System */
 
+	// Flag to disable flight.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight")
 	bool bFlightEnabled = false;
 
+	// Flag to call CanFly() per tick. This will disable flight in midair on a false return. When disabled, CanFly() will
+	// only be called on takeoff.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight")
+	bool AlwaysCheckFlightConditions = false;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|Flight")
 	FVector MaxLean = {40, 40, 0};
 	
@@ -594,11 +599,7 @@ protected:
 	// Control for the strength of manual flight input.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight")
 	float FlightStrengthActive = 1;
-	
-	// Control for the strength of manual flight input.
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight")
-	float EffectiveWeight = 30;
-	
+
 	// @TODO merge these into one linear color curve so data is packed???
 
 	// Flight input strength falloff by altitude. Represents the long distance pressure gradient from the thinning of
@@ -723,18 +724,60 @@ protected:
 	/** AHHH, I hate this, but I wanted to move View Mode to the player only file, and this is the *one* workaround I had to make. */
 	bool RestrictAiming = false;
 
+	/////////////////////////////
 	// ** WORLD INTERACTION ** //
+	// //////////////////////////
+
 	// This is where various optional features I've added are implemented.
+
+private:
 
 	// Altitude variables for flight calculations.
 	float SeaAltitude, TroposphereHeight, RelativeAltitude;
-	
-private:
+
 	// The current temperature of the player. Cached here, but should rely on another system for proper implementation.
 	float Temperature;
+
+	// Cached time from TemperatureAffectCurve at Temperature.
+	FVector TemperatureAffect;
+
+	// The temperature that the character must be between for flight to be allowed.
+	FVector2D FlightTempBounds = {0, 40};
+
+	// Control for the strength of manual flight input.
+	float EffectiveWeight = 30;
+
+	// Cached time from WeightAffectCurve at EffectiveWeight.
+	FVector WeightAffect;
+
+	float FlightWeightCutOff = 60;
+	
+protected:
+	
+	/**
+	* All movement speeds are multiplied against this curve when set. Represents how much the cold/hot slows down movement.
+	* X = Grounded curve.
+	* Y = Flying curve.
+	* Z = Swimming curve.
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "ALS|Movement System")
+	UCurveVector* TemperatureAffectCurve;
+
+	/**
+	* All movement speeds are multiplied against this curve when set. Represents how much the cold/hot slows down movement.
+	* X = Grounded curve.
+	* Y = Flying curve.
+	* Z = Swimming curve.
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "ALS|Movement System")
+	UCurveVector* WeightAffectCurve;
 
 public:
 	// Utility to implement temperature system. Call this to update character temperature.
 	UFUNCTION(BlueprintCallable, Category = "World Interaction")
 	void SetTemperature(float NewTemperature);
+
+	// Utility to implement weight system. Call this to update character weight.
+	UFUNCTION(BlueprintCallable, Category = "World Interaction")
+    void SetWeight(float NewWeight);
 };
