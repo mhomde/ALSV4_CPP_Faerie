@@ -8,7 +8,7 @@
 - All the features of the original. I generally keep this up-to-date with the latest release.
 - Flight support. This is the main point of this fork, and hence the name for it: Faerie ALS.
 - Swimming support planned. (Currently the framework is added but no animations)
-- Advanced dynamic walking speed. Adjusts to ground slope, and optionally to temperature (for integration into a weather system).
+- Integration with other gameplay systems: Movement adjusts to world temperature (e.g, a weather system), and player weight (e.g. an inventory system).
 - Extra mantling features: Auto-mantling over short obstacles.
 - Easier project integration: there is no need to modify config files in this fork. See #Setting Up The Plugin.
 
