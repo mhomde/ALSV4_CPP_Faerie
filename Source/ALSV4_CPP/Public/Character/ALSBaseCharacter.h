@@ -739,7 +739,7 @@ private:
 	float Temperature;
 
 	// Cached time from TemperatureAffectCurve at Temperature.
-	FVector TemperatureAffect;
+	FVector TemperatureAffect = FVector::OneVector;
 
 	// The temperature that the character must be between for flight to be allowed.
 	FVector2D FlightTempBounds = {0, 40};
@@ -748,7 +748,7 @@ private:
 	float EffectiveWeight = 30;
 
 	// Cached time from WeightAffectCurve at EffectiveWeight.
-	FVector WeightAffect;
+	FVector WeightAffect = FVector::OneVector;
 
 	float FlightWeightCutOff = 60;
 	
