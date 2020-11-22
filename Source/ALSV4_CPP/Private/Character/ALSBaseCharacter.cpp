@@ -1781,7 +1781,7 @@ void AALSBaseCharacter::SetWeight(const float NewWeight)
 	EffectiveWeight = NewWeight;
 	if (WeightAffectCurve)
 	{
-		WeightAffect = WeightAffectCurve->GetVectorValue(EffectiveWeight);
+		WeightAffect = WeightAffectCurve->GetVectorValue(EffectiveWeight / WeightAffectScale);
 	}
 	else
 	{

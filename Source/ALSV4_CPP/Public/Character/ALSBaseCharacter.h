@@ -760,7 +760,7 @@ protected:
 	* Y = Flying curve.
 	* Z = Swimming curve.
 	*/
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|Movement System")
+	UPROPERTY(EditDefaultsOnly, Category = "ALS|World Interaction")
 	UCurveVector* TemperatureAffectCurve;
 
 	/**
@@ -769,15 +769,18 @@ protected:
 	* Y = Flying curve.
 	* Z = Swimming curve.
 	*/
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|Movement System")
+	UPROPERTY(EditDefaultsOnly, Category = "ALS|World Interaction")
 	UCurveVector* WeightAffectCurve;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "ALS|World Interaction")
+	float WeightAffectScale = 100;
 
 public:
 	// Utility to implement temperature system. Call this to update character temperature.
-	UFUNCTION(BlueprintCallable, Category = "World Interaction")
+	UFUNCTION(BlueprintCallable, Category = "ALS|World Interaction")
 	void SetTemperature(float NewTemperature);
 
 	// Utility to implement weight system. Call this to update character weight.
-	UFUNCTION(BlueprintCallable, Category = "World Interaction")
+	UFUNCTION(BlueprintCallable, Category = "ALS|World Interaction")
     void SetWeight(float NewWeight);
 };
