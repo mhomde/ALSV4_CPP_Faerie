@@ -107,7 +107,8 @@ UENUM(BlueprintType)
 enum class EALSStance : uint8
 {
 	Standing,
-	Crouching
+	Crouching,
+	Riding
 };
 
 UENUM(BlueprintType)

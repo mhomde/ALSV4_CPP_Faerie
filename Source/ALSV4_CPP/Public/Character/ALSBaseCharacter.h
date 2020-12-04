@@ -356,13 +356,13 @@ protected:
 	void UpdateCharacterMovement(float DeltaTime);
 
 	// Adjusts walking speed to account for player temperature and ground incline, where extremes of each slow movement.
-	float AdjustNewWalkingSpeed(float DeltaTime, float NewSpeed);
+	float AdjustNewWalkingSpeed(float DeltaTime, float NewSpeed) const;
 
 	// Adjusts walking speed to account for player temperature.
-	float AdjustNewFlyingSpeed(float DeltaTime, float NewSpeed);
+	float AdjustNewFlyingSpeed(float DeltaTime, float NewSpeed) const;
 
 	// Adjusts walking speed to account for player temperature.
-	float AdjustNewSwimmingSpeed(float DeltaTime, float NewSpeed);
+	float AdjustNewSwimmingSpeed(float DeltaTime, float NewSpeed) const;
 	
 	void UpdateFlightMovement(float DeltaTime);
 	
@@ -708,7 +708,6 @@ protected:
 	FVector PreviousVelocity;
 
 	float PreviousAimYaw = 0.0f;
-	float MovementMultiplier = 1;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Cached Variables")
 	UALSCharacterAnimInstance* MainAnimInstance = nullptr;
@@ -755,7 +754,7 @@ private:
 protected:
 	
 	/**
-	* All movement speeds are multiplied against this curve when set. Represents how much the cold/hot slows down movement.
+	* All movement speeds are multiplied against this curve when set. Represents how much temperature affects movement.
 	* X = Grounded curve.
 	* Y = Flying curve.
 	* Z = Swimming curve.
@@ -764,7 +763,7 @@ protected:
 	UCurveVector* TemperatureAffectCurve;
 
 	/**
-	* All movement speeds are multiplied against this curve when set. Represents how much the cold/hot slows down movement.
+	* All movement speeds are multiplied against this curve when set. Represents how much weight affects movement.
 	* X = Grounded curve.
 	* Y = Flying curve.
 	* Z = Swimming curve.

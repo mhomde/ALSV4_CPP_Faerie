@@ -212,7 +212,10 @@ void AALSBaseCharacter::Tick(const float DeltaTime)
 	switch (MovementState) 
 	{
 	case EALSMovementState::None: break;
-	case EALSMovementState::Grounded: 
+	case EALSMovementState::Grounded:
+
+		if (Stance == EALSStance::Riding) break; // Cancel movement and rotation when riding.
+		
 		UpdateCharacterMovement(DeltaTime);
 		UpdateGroundedRotation(DeltaTime);
 		
@@ -978,15 +981,13 @@ void AALSBaseCharacter::UpdateCharacterMovement(const float DeltaTime)
 	}
 }
 
-float AALSBaseCharacter::AdjustNewWalkingSpeed(const float DeltaTime, const float NewSpeed)
+float AALSBaseCharacter::AdjustNewWalkingSpeed(const float DeltaTime, const float NewSpeed) const
 {
+	float MovementMultiplier = 1;
+
 	float OutSpeed = NewSpeed;
 	// Adjust by ground incline
-	if (GetVelocity() == FVector::ZeroVector)
-	{
-		MovementMultiplier = 1.f;
-	}
-	else
+	if (GetVelocity() != FVector::ZeroVector)
 	{
 		const float TargetMovementMultiplier = FMath::Pow(GetCharacterMovement()->CurrentFloor.HitResult.Normal.Z, WalkingSpeedInclineBias);
 		MovementMultiplier = FMath::FInterpTo(MovementMultiplier, TargetMovementMultiplier, DeltaTime, WalkingSpeedInterpRate);
@@ -1000,7 +1001,7 @@ float AALSBaseCharacter::AdjustNewWalkingSpeed(const float DeltaTime, const floa
 	return OutSpeed;
 }
 
-float AALSBaseCharacter::AdjustNewFlyingSpeed(const float DeltaTime, const float NewSpeed)
+float AALSBaseCharacter::AdjustNewFlyingSpeed(const float DeltaTime, const float NewSpeed) const
 {
 	float OutSpeed = NewSpeed;
 	
@@ -1012,7 +1013,7 @@ float AALSBaseCharacter::AdjustNewFlyingSpeed(const float DeltaTime, const float
 	return OutSpeed;
 }
 
-float AALSBaseCharacter::AdjustNewSwimmingSpeed(const float DeltaTime, const float NewSpeed)
+float AALSBaseCharacter::AdjustNewSwimmingSpeed(const float DeltaTime, const float NewSpeed) const
 {
 	float OutSpeed = NewSpeed;
 
@@ -1024,7 +1025,7 @@ float AALSBaseCharacter::AdjustNewSwimmingSpeed(const float DeltaTime, const flo
 	return OutSpeed;
 }
 
-void AALSBaseCharacter::UpdateFlightMovement(float DeltaTime)
+void AALSBaseCharacter::UpdateFlightMovement(const float DeltaTime)
 {
 	if (AlwaysCheckFlightConditions)
 	{

@@ -133,12 +133,16 @@ private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "StructEnumLibrary", meta = (AllowPrivateAccess = true))
 	bool Crouching_ = false;
 
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "StructEnumLibrary", meta = (AllowPrivateAccess = true))
+	bool Riding_ = false;
+
 public:
 	FALSStance() {}
 	FALSStance(const EALSStance InitialStance) { *this = InitialStance; }
 
 	FORCEINLINE const bool& Standing() const { return Standing_; }
 	FORCEINLINE const bool& Crouching() const { return Crouching_; }
+	FORCEINLINE const bool& Riding() const { return Riding_; }
 
 	FORCEINLINE operator EALSStance() const { return Stance; }
 
@@ -147,6 +151,7 @@ public:
 		Stance = NewStance;
 		Standing_ = Stance == EALSStance::Standing;
 		Crouching_ = Stance == EALSStance::Crouching;
+		Riding_ = Stance == EALSStance::Riding;
 	}
 };
 
