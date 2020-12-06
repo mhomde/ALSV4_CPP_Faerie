@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "4.11",
+	"VersionName": "4.12",
 	"FriendlyName": "Faerie Advanced Locomotion System V4 on C++",
 	"Description": "Fork of dyanikoglu's ALSV4_CPP with flight support",
 	"Category": "Animation",
@@ -10,7 +10,7 @@
 	"DocsURL": "https://github.com/Drakynfly/ALSV4_CPP_Faerie",
 	"MarketplaceURL": "",
 	"SupportURL": "https://github.com/dyanikoglu/ALSV4_CPP/issues",
-	"EngineVersion": "4.25.0",
+	"EngineVersion": "4.26.0",
 	"EnabledByDefault": true,
 	"CanContainContent": true,
 	"IsBetaVersion": false,
