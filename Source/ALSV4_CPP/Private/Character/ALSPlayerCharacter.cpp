@@ -13,13 +13,13 @@ struct FALSAnimCharacterInformation;
 AALSPlayerCharacter::AALSPlayerCharacter(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
 {
-    const auto UALS_Settings = UALS_Settings::Get();
-    InputX = UALS_Settings->X_Axis_Input;
-    InputY = UALS_Settings->Y_Axis_Input;
-    InputZ = UALS_Settings->Z_Axis_Input;
-	CameraPitch = UALS_Settings->Pitch_Input;
-	CameraYaw = UALS_Settings->Yaw_Input;
-	CameraRoll = UALS_Settings->Roll_Input;
+    const auto ALS_Settings = UALS_Settings::Get();
+    InputX = ALS_Settings->X_Axis_Input;
+    InputY = ALS_Settings->Y_Axis_Input;
+    InputZ = ALS_Settings->Z_Axis_Input;
+	CameraPitch = ALS_Settings->Pitch_Input;
+	CameraYaw = ALS_Settings->Yaw_Input;
+	CameraRoll = ALS_Settings->Roll_Input;
 }
 
 void AALSPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

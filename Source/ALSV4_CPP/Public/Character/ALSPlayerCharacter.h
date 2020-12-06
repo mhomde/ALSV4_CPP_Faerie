@@ -77,7 +77,7 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
     void Input_Aim_Release();
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Input")
     void CameraPitchInput(float Value);
 
@@ -86,7 +86,7 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
     void CameraRollInput(float Value);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Input")
     void Camera_Action();
 
