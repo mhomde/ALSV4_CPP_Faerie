@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "4.10",
+	"VersionName": "4.11",
 	"FriendlyName": "Faerie Advanced Locomotion System V4 on C++",
 	"Description": "Fork of dyanikoglu's ALSV4_CPP with flight support",
 	"Category": "Animation",

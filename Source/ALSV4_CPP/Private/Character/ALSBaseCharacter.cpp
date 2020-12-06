@@ -1356,7 +1356,7 @@ void AALSBaseCharacter::UpdateFlightRotation(const float DeltaTime)
 	const float RotationAlpha = Alpha_Altitude * (SpeedCache / 3);
 
 	// Calculate input leaning.
-	const FVector Lean = GetInputAcceleration() * MaxLean * RotationAlpha;
+	const FVector Lean = GetInputAcceleration() * MaxFlightLean * RotationAlpha;
 
 	const float Pitch = FMath::FInterpTo(GetActorRotation().Pitch, Lean.X * -1, DeltaTime, MaxFlightRotationRate);
 	const float Roll = FMath::FInterpTo(GetActorRotation().Roll, Lean.Y, DeltaTime, MaxFlightRotationRate);
@@ -1482,6 +1482,16 @@ bool AALSBaseCharacter::MantleCheck(const FALSMantleTraceSettings& TraceSettings
 
 	if (!HitResult.IsValidBlockingHit() || GetCharacterMovement()->IsWalkable(HitResult)) return false; // Not a valid surface to mantle
 
+	if (HitResult.GetComponent() != nullptr) 
+	{
+		UPrimitiveComponent* PrimitiveComponent = HitResult.GetComponent();
+		if (PrimitiveComponent && PrimitiveComponent->GetComponentVelocity().Size() > AcceptableVelocityWhileMantling)
+		{
+			// The surface to mantle moves too fast
+			return false;
+		}
+	}
+	
 	const FVector InitialTraceImpactPoint = HitResult.ImpactPoint;
 	const FVector InitialTraceNormal = HitResult.ImpactNormal;
 
@@ -1495,14 +1505,10 @@ bool AALSBaseCharacter::MantleCheck(const FALSMantleTraceSettings& TraceSettings
 	DrawDebugLine(World, DownwardTraceStart, DownwardTraceEnd, FColor::Blue, false, 1.f, 0, 3);
 
 	World->SweepSingleByChannel(HitResult, DownwardTraceStart, DownwardTraceEnd, FQuat::Identity,
-	                            UALS_Settings::Get()->MantleCheckChannel, FCollisionShape::MakeSphere(TraceSettings.DownwardTraceRadius), Params);
+	                            UALS_Settings::Get()->MantleCheckChannel,
+	                            FCollisionShape::MakeSphere(TraceSettings.DownwardTraceRadius), Params);
 
-
-	if (!GetCharacterMovement()->IsWalkable(HitResult))
-	{
-		// Not a valid surface to mantle
-		return false;
-	}
+	if (!GetCharacterMovement()->IsWalkable(HitResult)) { return false; } // Not a valid surface to mantle
 
 	const FVector DownTraceLocation(HitResult.Location.X, HitResult.Location.Y, HitResult.ImpactPoint.Z);
 	UPrimitiveComponent* HitComponent = HitResult.GetComponent();
@@ -1546,6 +1552,7 @@ bool AALSBaseCharacter::MantleCheck(const FALSMantleTraceSettings& TraceSettings
 	return true;
 }
 
+// This function is called by "MantleTimeline" using BindUFunction in the AALSBaseCharacter::BeginPlay during the default settings initalization.
 void AALSBaseCharacter::MantleUpdate(const float BlendIn)
 {
 	// Step 1: Continually update the mantle target from the stored local transform to follow along with moving objects

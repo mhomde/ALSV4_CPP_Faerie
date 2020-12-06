@@ -51,7 +51,7 @@ void AALSPlayerCharacter::BeginPlay()
 
 FVector AALSPlayerCharacter::GetMovementDirection() const
 {
-    FVector Forward, Right;
+    FVector Forward, Right = FVector::ZeroVector;
     GetControlForwardRightVector(Forward, Right);
     return (Forward + Right).GetSafeNormal();
 }

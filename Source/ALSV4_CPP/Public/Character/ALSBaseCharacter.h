@@ -450,6 +450,7 @@ protected:
 
 protected:
 	/* Custom movement component*/
+	UPROPERTY()
 	UALSCharacterMovementComponent* MyCharacterMovementComponent;
 
 	/* Optimization */
@@ -459,7 +460,7 @@ protected:
 	 This overrides that and forces it on. Useful for testing.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Optimization")
-	bool bForceFullNetworkedDynamicMovement;
+	bool bForceFullNetworkedDynamicMovement = false;
 	
 	/** Input */
 
@@ -499,7 +500,7 @@ protected:
 	/** Essential Information */
 
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Essential Information")
-	FVector Acceleration;
+	FVector Acceleration = FVector::ZeroVector;
 
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Essential Information")
 	bool bIsMoving = false;
@@ -525,13 +526,13 @@ protected:
 	/** Replicated Essential Information*/
 
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Essential Information")
-	float EasedMaxAcceleration;
+	float EasedMaxAcceleration = 0.0f;
 
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "ALS|Essential Information")
-	FVector ReplicatedCurrentAcceleration;
+	FVector ReplicatedCurrentAcceleration = FVector::ZeroVector;
 
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "ALS|Essential Information")
-	FRotator ReplicatedControlRotation;
+	FRotator ReplicatedControlRotation = FRotator::ZeroRotator;
 
 	/** State Values */
 
@@ -562,10 +563,10 @@ protected:
 	/** Rotation System */
 
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Rotation System")
-	FRotator TargetRotation;
+	FRotator TargetRotation = FRotator::ZeroRotator;
 
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Rotation System")
-	FRotator InAirRotation;
+	FRotator InAirRotation = FRotator::ZeroRotator;
 
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Rotation System")
 	float YawOffset = 0.0f;
@@ -580,9 +581,10 @@ protected:
 	// only be called on takeoff.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight")
 	bool AlwaysCheckFlightConditions = false;
-	
+
+	// Maximum rotation in Yaw, Pitch and Roll, that may be achieved in flight, when traveling at max speed.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|Flight")
-	FVector MaxLean = {40, 40, 0};
+	FVector MaxFlightLean = {40, 40, 0};
 	
 	// Maximum rotation rate when traveling at RotationVelocityMax.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|Flight")
@@ -596,25 +598,26 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight")
 	float FlightStrengthPassive = 6000;
 	
-	// Control for the strength of manual flight input.
+	// Control for the strength of manual flight input. @TODO What is this for?
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight")
 	float FlightStrengthActive = 1;
 
 	// @TODO merge these into one linear color curve so data is packed???
-
+	// @TODO if flight lift is reworked, this may be replaced by lift algorithm that generates this. In that case, this
+	// should be repurposed to represent atmospheric density, for use in that algorithm.
 	// Flight input strength falloff by altitude. Represents the long distance pressure gradient from the thinning of
 	// the atmosphere at higher altitudes. Multiplied by TroposphereHeight, so this should be a normalized curve.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Flight")
-	UCurveFloat* AtmosphericPressureFalloff;
+	UCurveFloat* AtmosphericPressureFalloff = nullptr;
 
 	// Flight input strength falloff by pressure. Represents the short distance pressure gradient from the downward
 	// force of flight against the ground below.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Flight")
-	UCurveFloat* GroundPressureFalloff;
+	UCurveFloat* GroundPressureFalloff = nullptr;
 
-	// Condition to trigger flight automatically cutting out.
+	// Condition to trigger flight automatically cutting out. For Custom to work, implement function FlightInterruptCustomCheck();
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Flight")
-	EALSFlightCancelCondition FlightCancelCondition;
+	EALSFlightCancelCondition FlightCancelCondition = EALSFlightCancelCondition::VelocityThreshold;
 
 	// The velocity of the hit required to trigger a positive FlightInterruptThresholdCheck.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight", meta = (EditCondition = "FlightCancelCondition == EALSFlightCancelCondition::VelocityThreshold || FlightCancelCondition == EALSFlightCancelCondition::CustomOrThreshold || FlightCancelCondition == EALSFlightCancelCondition::CustomAndThreshold"))
@@ -632,8 +635,12 @@ protected:
 	FALSMantleTraceSettings FallingTraceSettings;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
-	UCurveFloat* MantleTimelineCurve;
+	UCurveFloat* MantleTimelineCurve = nullptr;
 
+	/** If a dynamic object has a velocity bigger than this value, do not start mantle */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
+	float AcceptableVelocityWhileMantling = 10.0f;
+	
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Mantle System")
 	FALSMantleParams MantleParams;
 
@@ -641,13 +648,13 @@ protected:
 	FALSComponentAndTransform MantleLedgeLS;
 
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Mantle System")
-	FTransform MantleTarget;
+	FTransform MantleTarget = FTransform::Identity;
 
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Mantle System")
-	FTransform MantleActualStartOffset;
+	FTransform MantleActualStartOffset = FTransform::Identity;
 
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Mantle System")
-	FTransform MantleAnimatedStartOffset;
+	FTransform MantleAnimatedStartOffset = FTransform::Identity;
 
 	/**  Enables automatically vaulting over short obstacles, when moving toward them. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
@@ -665,7 +672,7 @@ protected:
 
 	/** Flag to tell the breakfall system to activate the next time the character lands. This will set to false immediatlely after. */
 	UPROPERTY(BlueprintReadWrite, Category = "ALS|Breakfall System")
-	bool bBreakFallNextLanding;
+	bool bBreakFallNextLanding = false;
 	
 	/** If player hits to the ground with an amount of velocity greater than specified value, switch to breakfall state */
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "ALS|Breakfall System", meta = (EditCondition = "bBreakfallOnLand"))
@@ -692,10 +699,10 @@ protected:
 	bool bRagdollFaceUp = false;
 
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Ragdoll System")
-	FVector LastRagdollVelocity;
+	FVector LastRagdollVelocity = FVector::ZeroVector;
 
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "ALS|Ragdoll System")
-	FVector TargetRagdollLocation;
+	FVector TargetRagdollLocation = FVector::ZeroVector;
 
 	/* Server ragdoll pull force storage*/
 	float ServerRagdollPull = 0.0f;
@@ -705,7 +712,7 @@ protected:
 
 	/** Cached Variables */
 
-	FVector PreviousVelocity;
+	FVector PreviousVelocity = FVector::ZeroVector;
 
 	float PreviousAimYaw = 0.0f;
 
@@ -716,7 +723,7 @@ protected:
 	FTimerHandle OnLandedFrictionResetTimer;
 
 	/* Smooth out aiming by interping control rotation*/
-	FRotator AimingRotation;
+	FRotator AimingRotation = FRotator::ZeroRotator;
 
 	bool bIsNetworked = false;
 
@@ -729,13 +736,45 @@ protected:
 
 	// This is where various optional features I've added are implemented.
 
+public:
+	// Utility to implement temperature system. Call this to update character temperature.
+	UFUNCTION(BlueprintCallable, Category = "ALS|World Interaction")
+    void SetTemperature(float NewTemperature);
+
+	// Utility to implement weight system. Call this to update character weight.
+	UFUNCTION(BlueprintCallable, Category = "ALS|World Interaction")
+    void SetWeight(float NewWeight);
+
+protected:
+	
+	/**
+	* All movement speeds are multiplied against this curve when set. Represents how much temperature affects movement.
+	* X = Grounded curve.
+	* Y = Flying curve.
+	* Z = Swimming curve.
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "ALS|World Interaction")
+	UCurveVector* TemperatureAffectCurve = nullptr;
+
+	/**
+	* All movement speeds are multiplied against this curve when set. Represents how much weight affects movement.
+	* X = Grounded curve.
+	* Y = Flying curve.
+	* Z = Swimming curve.
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "ALS|World Interaction")
+	UCurveVector* WeightAffectCurve = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "ALS|World Interaction")
+	float WeightAffectScale = 100;
+	
 private:
 
 	// Altitude variables for flight calculations.
-	float SeaAltitude, TroposphereHeight, RelativeAltitude;
+	float SeaAltitude, TroposphereHeight, RelativeAltitude = 0;
 
 	// The current temperature of the player. Cached here, but should rely on another system for proper implementation.
-	float Temperature;
+	float Temperature = 0;
 
 	// Cached time from TemperatureAffectCurve at Temperature.
 	FVector TemperatureAffect = FVector::OneVector;
@@ -750,36 +789,4 @@ private:
 	FVector WeightAffect = FVector::OneVector;
 
 	float FlightWeightCutOff = 60;
-	
-protected:
-	
-	/**
-	* All movement speeds are multiplied against this curve when set. Represents how much temperature affects movement.
-	* X = Grounded curve.
-	* Y = Flying curve.
-	* Z = Swimming curve.
-	*/
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|World Interaction")
-	UCurveVector* TemperatureAffectCurve;
-
-	/**
-	* All movement speeds are multiplied against this curve when set. Represents how much weight affects movement.
-	* X = Grounded curve.
-	* Y = Flying curve.
-	* Z = Swimming curve.
-	*/
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|World Interaction")
-	UCurveVector* WeightAffectCurve;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|World Interaction")
-	float WeightAffectScale = 100;
-
-public:
-	// Utility to implement temperature system. Call this to update character temperature.
-	UFUNCTION(BlueprintCallable, Category = "ALS|World Interaction")
-	void SetTemperature(float NewTemperature);
-
-	// Utility to implement weight system. Call this to update character weight.
-	UFUNCTION(BlueprintCallable, Category = "ALS|World Interaction")
-    void SetWeight(float NewWeight);
 };

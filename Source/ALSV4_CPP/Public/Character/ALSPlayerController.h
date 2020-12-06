@@ -27,5 +27,6 @@ public:
 
 private:
 	/** Main character reference */
+	UPROPERTY()
 	AALSPlayerCharacter* PossessedCharacter = nullptr;
 };
