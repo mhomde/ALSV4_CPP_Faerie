@@ -36,17 +36,6 @@ AALSBaseCharacter::AALSBaseCharacter(const FObjectInitializer& ObjectInitializer
 	TroposphereHeight = UALS_Settings->TroposphereHeight;
 }
 
-void AALSBaseCharacter::Restart()
-{
-	Super::Restart();
-
-	AALSPlayerController* NewController = Cast<AALSPlayerController>(GetController());
-	if (NewController)
-	{
-		NewController->OnRestartPawn(this);
-	}
-}
-
 void AALSBaseCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();

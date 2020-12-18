@@ -41,8 +41,6 @@ public:
 
 	virtual void PreInitializeComponents() override;
 
-	virtual void Restart() override;
-
 	virtual void PostInitializeComponents() override;
 
 	virtual void NotifyHit(UPrimitiveComponent* MyComp,
