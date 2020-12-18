@@ -393,6 +393,8 @@ void AALSPlayerCharacter::OnViewModeChanged(const EALSViewMode PreviousViewMode)
 		break;
 	default: ;
 	}
+	K2_OnViewModeChanged(PreviousViewMode);
+	ViewModeChangedDelegate.Broadcast(this, PreviousViewMode);
 }
 
 void AALSPlayerCharacter::OnRep_ViewMode(const EALSViewMode PrevViewMode)

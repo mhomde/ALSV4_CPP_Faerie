@@ -6,6 +6,8 @@
 #include "Character/ALSBaseCharacter.h"
 #include "ALSPlayerCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FViewModeChangedSignature, class ACharacter*, Character, EALSViewMode, PrevViewMode);
+
 /**
  * 
  */
@@ -123,8 +125,15 @@ public:
     EALSViewMode GetViewMode() const { return ViewMode; }
 	
 protected:
-	
+
 	virtual void OnViewModeChanged(EALSViewMode PreviousViewMode);
+
+	/** Multicast delegate for ViewMode changing. */
+	UPROPERTY(BlueprintAssignable, Category=Character)
+	FViewModeChangedSignature ViewModeChangedDelegate;
+
+	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="OnViewModeChanged", ScriptName="OnViewModeChanged"))
+	void K2_OnViewModeChanged(EALSViewMode PreviousViewMode);
 
 	UFUNCTION()
 	void OnRep_ViewMode(EALSViewMode PrevViewMode);
