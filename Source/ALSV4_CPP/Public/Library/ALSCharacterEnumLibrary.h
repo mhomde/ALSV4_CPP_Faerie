@@ -48,12 +48,12 @@ UENUM(BlueprintType)
 enum class EALSMovementState : uint8
 {
 	None,
-    Grounded,
-    Freefall,
-    Flight,
-    Swimming,
-    Mantling,
-    Ragdoll
+	Grounded,
+	Freefall,
+	Flight,
+	Swimming,
+	Mantling,
+	Ragdoll
 };
 
 UENUM(BlueprintType)
@@ -86,10 +86,10 @@ UENUM(BlueprintType)
 enum class EALSFlightMode : uint8
 {
 	None,
-    Neutral,
-    Raising,
-    Lowering,
-    Hovering
+	Neutral,
+	Raising,
+	Lowering,
+	Hovering
 };
 
 UENUM(BlueprintType)

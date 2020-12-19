@@ -44,13 +44,13 @@ public:
 	virtual void PostInitializeComponents() override;
 
 	virtual void NotifyHit(UPrimitiveComponent* MyComp,
-						   AActor* Other,
-						   UPrimitiveComponent* OtherComp,
-						   bool bSelfMoved,
-						   FVector HitLocation,
-						   FVector HitNormal,
-						   FVector NormalImpulse,
-						   const FHitResult& Hit) override;
+	                       AActor* Other,
+	                       UPrimitiveComponent* OtherComp,
+	                       bool bSelfMoved,
+	                       FVector HitLocation,
+	                       FVector HitNormal,
+	                       FVector NormalImpulse,
+	                       const FHitResult& Hit) override;
 
 	// We are overriding this to implement custom handling for flight logic.
 	virtual void AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce = false) override;
@@ -109,7 +109,7 @@ public:
 	void Server_SetRotationMode(EALSRotationMode NewRotationMode);
 
 	UFUNCTION(BlueprintCallable, Category = "ALS|Input")
-    void SetFlightMode(EALSFlightMode NewFlightMode);
+	void SetFlightMode(EALSFlightMode NewFlightMode);
 
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "ALS|Character States")
 	void Server_SetFlightMode(EALSFlightMode NewFlightMode);
@@ -154,10 +154,12 @@ public:
 
 	/** Mantling*/
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "ALS|Character States")
-	void Server_MantleStart(float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS, EALSMantleType MantleType);
+	void Server_MantleStart(float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS,
+	                        EALSMantleType MantleType);
 
 	UFUNCTION(BlueprintCallable, NetMulticast, Reliable, Category = "ALS|Character States")
-	void Multicast_MantleStart(float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS, EALSMantleType MantleType);
+	void Multicast_MantleStart(float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS,
+	                           EALSMantleType MantleType);
 
 	/** Ragdolling*/
 	UFUNCTION(BlueprintCallable, Category = "ALS|Character States")
@@ -203,7 +205,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "ALS|Character States")
 	void Server_SetDesiredRotationMode(EALSRotationMode NewRotMode);
-	
+
 	// Utility function to determine the indended movement direction.
 	UFUNCTION(BlueprintCallable, Category = "ALS|Input")
 	virtual FVector GetMovementDirection() const { return FVector::ZeroVector; }
@@ -227,7 +229,7 @@ public:
 
 	/** Automatically called mantle check for vaulting small objects. */
 	UFUNCTION(BlueprintCallable, Category = "ALS|Mantle System")
-    virtual bool MantleCheckVault();
+	virtual bool MantleCheckVault();
 
 	/** Movement System */
 
@@ -276,7 +278,7 @@ public:
 	// the current altitude.
 	UFUNCTION(BlueprintPure, Category = "Utilities")
 	float GetAtmospherePressure() const;
-	
+
 	/** Implement on BP to draw debug spheres */
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "ALS|Debug")
 	void DrawDebugSpheres();
@@ -289,7 +291,7 @@ public:
 	// Gets the input direction in local space.
 	UFUNCTION(BlueprintGetter, Category = "ALS|Essential Information")
 	FVector GetInputAcceleration() const;
-	
+
 	UFUNCTION(BlueprintCallable, Category = "ALS|Essential Information")
 	void SetAcceleration(const FVector& NewAcceleration);
 
@@ -361,12 +363,12 @@ protected:
 
 	// Adjusts walking speed to account for player temperature.
 	float AdjustNewSwimmingSpeed(float DeltaTime, float NewSpeed) const;
-	
+
 	void UpdateFlightMovement(float DeltaTime);
-	
+
 	// This is the not replicated version that uses the curve data, since desync isn't an issue when standalone.
 	void UpdateDynamicMovementSettingsStandalone(float DeltaTime, EALSGait AllowedGait);
-	
+
 	// This is the shorter replicated version that doesn't use the additional curve data.
 	void UpdateDynamicMovementSettingsNetworked(float DeltaTime, EALSGait AllowedGait);
 
@@ -384,33 +386,34 @@ protected:
 	 * weight, and temperature limits, and calls the BP implementable version of this, as well. */
 	UFUNCTION(BlueprintCallable, Category = "ALS|Flight")
 	virtual bool CanFly();
-	
+
 	/** This must be overriden to setup custom conditions for allowing character flight from blueprint. */
 	UFUNCTION(BlueprintImplementableEvent, Category = "ALS|Flight")
-    bool FlightCheck();
+	bool FlightCheck();
 
 	bool FlightInterruptThresholdCheck() const;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "ALS|Flight")
 	bool FlightInterruptCustomCheck(UPrimitiveComponent* MyComp,
-							   AActor* Other,
-							   UPrimitiveComponent* OtherComp,
-							   bool bSelfMoved,
-							   FVector HitLocation,
-							   FVector HitNormal,
-							   FVector NormalImpulse,
-							   const FHitResult& Hit);
+	                                AActor* Other,
+	                                UPrimitiveComponent* OtherComp,
+	                                bool bSelfMoved,
+	                                FVector HitLocation,
+	                                FVector HitNormal,
+	                                FVector NormalImpulse,
+	                                const FHitResult& Hit);
 
 	/** Mantle System */
 
-	virtual void MantleStart(float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS, EALSMantleType MantleType);
+	virtual void MantleStart(float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS,
+	                         EALSMantleType MantleType);
 
 	virtual bool MantleCheck(const FALSMantleTraceSettings& TraceSettings);
 
 	/** Place for designers to implement gameplay specific checks for allowing the player to mantle */
 	UFUNCTION(BlueprintImplementableEvent, Category = "ALS|Mantle System")
-    bool CanMantle(EALSMantleType Type);
-	
+	bool CanMantle(EALSMantleType Type);
+
 	UFUNCTION()
 	virtual void MantleUpdate(float BlendIn);
 
@@ -431,7 +434,7 @@ protected:
 	// Gets the relative altitude of the player, measuring down to a point below the character.
 	UFUNCTION(BlueprintCallable, Category = "ALS|Flight")
 	float FlightDistanceCheck(float CheckDistance, FVector Direction) const;
-	
+
 	void LimitRotation(float AimYawMin, float AimYawMax, float InterpSpeed, float DeltaTime);
 
 	void SetMovementModel();
@@ -442,7 +445,7 @@ protected:
 
 	UFUNCTION()
 	void OnRep_FlightMode(EALSFlightMode PrevFlightMode);
-	
+
 	UFUNCTION()
 	void OnRep_OverlayState(EALSOverlayState PrevOverlayState);
 
@@ -459,7 +462,7 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Optimization")
 	bool bForceFullNetworkedDynamicMovement = false;
-	
+
 	/** Input */
 
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "ALS|Input")
@@ -478,18 +481,18 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|Movement System")
 	FDataTableRowHandle MovementModel;
-	
+
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Movement System")
 	FALSMovementStateSettings MovementData;
 
 	// How much walking speed is affected by the incline of the floor.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Movement System")
 	float WalkingSpeedInclineBias = 2;
-	
+
 	// The speed that the character adjusts to changes in walking incline.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Movement System")
 	float WalkingSpeedInterpRate = 4;
-		
+
 	/** Components */
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Components")
@@ -548,7 +551,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|State Values", ReplicatedUsing = OnRep_RotationMode)
 	EALSRotationMode RotationMode = EALSRotationMode::LookingDirection;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|State Values", ReplicatedUsing = OnRep_FlightMode)
 	EALSFlightMode FlightMode = EALSFlightMode::None;
 
@@ -583,7 +586,7 @@ protected:
 	// Maximum rotation in Yaw, Pitch and Roll, that may be achieved in flight, when traveling at max speed.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|Flight")
 	FVector MaxFlightLean = {40, 40, 0};
-	
+
 	// Maximum rotation rate when traveling at RotationVelocityMax.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ALS|Flight")
 	float MaxFlightRotationRate = 3.f;
@@ -595,7 +598,7 @@ protected:
 	// Control for the strength of automatic flight input. Used for calculating wing pressure.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight")
 	float FlightStrengthPassive = 6000;
-	
+
 	// Control for the strength of manual flight input. @TODO What is this for?
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight")
 	float FlightStrengthActive = 1;
@@ -618,11 +621,13 @@ protected:
 	EALSFlightCancelCondition FlightCancelCondition = EALSFlightCancelCondition::VelocityThreshold;
 
 	// The velocity of the hit required to trigger a positive FlightInterruptThresholdCheck.
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight", meta = (EditCondition = "FlightCancelCondition == EALSFlightCancelCondition::VelocityThreshold || FlightCancelCondition == EALSFlightCancelCondition::CustomOrThreshold || FlightCancelCondition == EALSFlightCancelCondition::CustomAndThreshold"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS|Flight", meta = (EditCondition =
+		"FlightCancelCondition == EALSFlightCancelCondition::VelocityThreshold || FlightCancelCondition == EALSFlightCancelCondition::CustomOrThreshold || FlightCancelCondition == EALSFlightCancelCondition::CustomAndThreshold"
+	))
 	float FlightInterruptThreshold = 600;
 
 	/** Mantle System */
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
 	FALSMantleTraceSettings GroundedTraceSettings;
 
@@ -638,7 +643,7 @@ protected:
 	/** If a dynamic object has a velocity bigger than this value, do not start mantle */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
 	float AcceptableVelocityWhileMantling = 10.0f;
-	
+
 	UPROPERTY(BlueprintReadOnly, Category = "ALS|Mantle System")
 	FALSMantleParams MantleParams;
 
@@ -657,11 +662,11 @@ protected:
 	/**  Enables automatically vaulting over short obstacles, when moving toward them. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ALS|Mantle System")
 	bool bUseAutoVault = true;
-	
+
 	/** Should the mantle system perform constant checks while falling? */
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "ALS|Mantle System")
 	bool bAlwaysCatchIfFalling = true;
-	
+
 	/** Breakfall System */
 
 	/** If player hits to the ground with a specified amount of velocity, switch to breakfall state */
@@ -671,9 +676,10 @@ protected:
 	/** Flag to tell the breakfall system to activate the next time the character lands. This will set to false immediatlely after. */
 	UPROPERTY(BlueprintReadWrite, Category = "ALS|Breakfall System")
 	bool bBreakFallNextLanding = false;
-	
+
 	/** If player hits to the ground with an amount of velocity greater than specified value, switch to breakfall state */
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "ALS|Breakfall System", meta = (EditCondition = "bBreakfallOnLand"))
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "ALS|Breakfall System", meta = (EditCondition =
+		"bBreakfallOnLand"))
 	float BreakfallOnLandVelocity = 600.0f;
 
 	/** Ragdoll System */
@@ -737,14 +743,14 @@ protected:
 public:
 	// Utility to implement temperature system. Call this to update character temperature.
 	UFUNCTION(BlueprintCallable, Category = "ALS|World Interaction")
-    void SetTemperature(float NewTemperature);
+	void SetTemperature(float NewTemperature);
 
 	// Utility to implement weight system. Call this to update character weight.
 	UFUNCTION(BlueprintCallable, Category = "ALS|World Interaction")
-    void SetWeight(float NewWeight);
+	void SetWeight(float NewWeight);
 
 protected:
-	
+
 	/**
 	* All movement speeds are multiplied against this curve when set. Represents how much temperature affects movement.
 	* X = Grounded curve.
@@ -762,10 +768,10 @@ protected:
 	*/
 	UPROPERTY(EditDefaultsOnly, Category = "ALS|World Interaction")
 	UCurveVector* WeightAffectCurve = nullptr;
-	
+
 	UPROPERTY(EditDefaultsOnly, Category = "ALS|World Interaction")
 	float WeightAffectScale = 100;
-	
+
 private:
 
 	// Altitude variables for flight calculations.

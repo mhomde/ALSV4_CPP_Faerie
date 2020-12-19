@@ -40,10 +40,10 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Player Camera Manager")
 	static FVector CalculateAxisIndependentLag(FVector CurrentLocation,
-											   FVector TargetLocation,
-											   FRotator CameraRotation,
-											   FVector LagSpeeds,
-											   float DeltaTime);
+	                                           FVector TargetLocation,
+	                                           FRotator CameraRotation,
+	                                           FVector LagSpeeds,
+	                                           float DeltaTime);
 
 	UFUNCTION(BlueprintCallable, Category = "Player Camera Manager")
 	bool CustomCameraBehavior(float DeltaTime, FVector& Location, FRotator& Rotation, float& FOV);

@@ -14,7 +14,6 @@
 #include "ALSPlayerCameraBehavior.generated.h"
 
 class AALSPlayerCharacter;
-class AALSPlayerController;
 
 /**
  * Main class for player camera movement behavior

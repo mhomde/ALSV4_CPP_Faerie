@@ -11,12 +11,12 @@
 struct FALSAnimCharacterInformation;
 
 AALSPlayerCharacter::AALSPlayerCharacter(const FObjectInitializer& ObjectInitializer)
-    : Super(ObjectInitializer)
+	: Super(ObjectInitializer)
 {
-    const auto ALS_Settings = UALS_Settings::Get();
-    InputX = ALS_Settings->X_Axis_Input;
-    InputY = ALS_Settings->Y_Axis_Input;
-    InputZ = ALS_Settings->Z_Axis_Input;
+	const auto ALS_Settings = UALS_Settings::Get();
+	InputX = ALS_Settings->X_Axis_Input;
+	InputY = ALS_Settings->Y_Axis_Input;
+	InputZ = ALS_Settings->Z_Axis_Input;
 	CameraPitch = ALS_Settings->Pitch_Input;
 	CameraYaw = ALS_Settings->Yaw_Input;
 	CameraRoll = ALS_Settings->Roll_Input;
@@ -31,9 +31,9 @@ void AALSPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 void AALSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-    Super::SetupPlayerInputComponent(PlayerInputComponent);
-    PlayerInputComponent->BindAxis(InputX, this, &AALSPlayerCharacter::MovementInput_X);
-    PlayerInputComponent->BindAxis(InputY, this, &AALSPlayerCharacter::MovementInput_Y);
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	PlayerInputComponent->BindAxis(InputX, this, &AALSPlayerCharacter::MovementInput_X);
+	PlayerInputComponent->BindAxis(InputY, this, &AALSPlayerCharacter::MovementInput_Y);
 	PlayerInputComponent->BindAxis(InputZ, this, &AALSPlayerCharacter::MovementInput_Z);
 	PlayerInputComponent->BindAxis(CameraPitch, this, &AALSPlayerCharacter::CameraPitchInput);
 	PlayerInputComponent->BindAxis(CameraYaw, this, &AALSPlayerCharacter::CameraYawInput);
@@ -51,15 +51,15 @@ void AALSPlayerCharacter::BeginPlay()
 
 FVector AALSPlayerCharacter::GetMovementDirection() const
 {
-    FVector Forward, Right = FVector::ZeroVector;
-    GetControlForwardRightVector(Forward, Right);
-    return (Forward + Right).GetSafeNormal();
+	FVector Forward, Right = FVector::ZeroVector;
+	GetControlForwardRightVector(Forward, Right);
+	return (Forward + Right).GetSafeNormal();
 }
 
 void AALSPlayerCharacter::OnRotationModeChanged(const EALSRotationMode PreviousRotationMode)
 {
 	Super::OnRotationModeChanged(PreviousRotationMode);
-	
+
 	if (RotationMode == EALSRotationMode::VelocityDirection && ViewMode == EALSViewMode::FirstPerson)
 	{
 		// If the new rotation mode is Velocity Direction and the character is in First Person,
@@ -70,72 +70,74 @@ void AALSPlayerCharacter::OnRotationModeChanged(const EALSRotationMode PreviousR
 
 void AALSPlayerCharacter::GetControlForwardRightVector(FVector& Forward, FVector& Right) const
 {
-    const FRotator ControlRot(0.0f, AimingRotation.Yaw, 0.0f);
-    Forward = GetInputAxisValue(InputX) * UKismetMathLibrary::GetForwardVector(ControlRot);
-    Right = GetInputAxisValue(InputZ) * UKismetMathLibrary::GetRightVector(ControlRot);
+	const FRotator ControlRot(0.0f, AimingRotation.Yaw, 0.0f);
+	Forward = GetInputAxisValue(InputX) * UKismetMathLibrary::GetForwardVector(ControlRot);
+	Right = GetInputAxisValue(InputZ) * UKismetMathLibrary::GetRightVector(ControlRot);
 }
 
 ECollisionChannel AALSPlayerCharacter::GetThirdPersonTraceParams(FVector& TraceOrigin, float& TraceRadius)
 {
-    TraceOrigin = GetActorLocation();
-    TraceRadius = 10.0f;
-    return ECC_Visibility;
+	TraceOrigin = GetActorLocation();
+	TraceRadius = 10.0f;
+	return ECC_Visibility;
 }
 
 FTransform AALSPlayerCharacter::GetThirdPersonPivotTarget()
 {
-    return GetActorTransform();
+	return GetActorTransform();
 }
 
 FVector AALSPlayerCharacter::GetFirstPersonCameraTarget()
 {
-    return GetMesh()->GetSocketLocation(FName(TEXT("FP_Camera")));
+	return GetMesh()->GetSocketLocation(FName(TEXT("FP_Camera")));
 }
 
 void AALSPlayerCharacter::GetCameraParameters(float& TPFOVOut, float& FPFOVOut, bool& bRightShoulderOut) const
 {
-    TPFOVOut = ThirdPersonFOV;
-    FPFOVOut = FirstPersonFOV;
-    bRightShoulderOut = bRightShoulder;
+	TPFOVOut = ThirdPersonFOV;
+	FPFOVOut = FirstPersonFOV;
+	bRightShoulderOut = bRightShoulder;
 }
 
 void AALSPlayerCharacter::MovementInput_X(const float Value)
 {
-    if (GetInputAxisValue(InputX) == 0 && Value == 0) return;
-	
-    // Default camera relative movement behavior
-    const float Scale = UALSMathLibrary::FixDiagonalGamepadValues(Value, GetInputAxisValue(InputY)).Key;
+	if (GetInputAxisValue(InputX) == 0 && Value == 0) return;
+
+	// Default camera relative movement behavior
+	const float Scale = UALSMathLibrary::FixDiagonalGamepadValues(Value, GetInputAxisValue(InputY)).Key;
 
 	float Pitch = AimingRotation.Pitch;
 	if (GetCharacterMovement()->MovementMode == MOVE_Flying)
 	{
 		if (Value >= 0)
 		{
-			Pitch = FMath::ClampAngle(AimingRotation.Pitch, -MaxFlightForwardAngle, MaxFlightForwardAngle * GetAtmospherePressure());
+			Pitch = FMath::ClampAngle(AimingRotation.Pitch, -MaxFlightForwardAngle,
+			                          MaxFlightForwardAngle * GetAtmospherePressure());
 		}
 		else if (Value < 0)
 		{
-			Pitch = FMath::ClampAngle(AimingRotation.Pitch, -MaxFlightForwardAngle * GetAtmospherePressure(), MaxFlightForwardAngle);
+			Pitch = FMath::ClampAngle(AimingRotation.Pitch, -MaxFlightForwardAngle * GetAtmospherePressure(),
+			                          MaxFlightForwardAngle);
 		}
 	}
-    const FRotator DirRotator(Pitch, AimingRotation.Yaw, 0.0f);
-    AddMovementInput(UKismetMathLibrary::GetForwardVector(DirRotator), Scale);
+	const FRotator DirRotator(Pitch, AimingRotation.Yaw, 0.0f);
+	AddMovementInput(UKismetMathLibrary::GetForwardVector(DirRotator), Scale);
 }
 
 void AALSPlayerCharacter::MovementInput_Y(const float Value)
 {
-    if (GetInputAxisValue(InputY) == 0 && Value == 0) return;
+	if (GetInputAxisValue(InputY) == 0 && Value == 0) return;
 
-    // Default camera relative movement behavior
-    const float Scale = UALSMathLibrary::FixDiagonalGamepadValues(GetInputAxisValue(InputX), Value).Value;
-    const FRotator DirRotator(0.0f, AimingRotation.Yaw, 0.0f);
-    AddMovementInput(UKismetMathLibrary::GetRightVector(DirRotator), Scale);
+	// Default camera relative movement behavior
+	const float Scale = UALSMathLibrary::FixDiagonalGamepadValues(GetInputAxisValue(InputX), Value).Value;
+	const FRotator DirRotator(0.0f, AimingRotation.Yaw, 0.0f);
+	AddMovementInput(UKismetMathLibrary::GetRightVector(DirRotator), Scale);
 }
 
 void AALSPlayerCharacter::MovementInput_Z(const float Value)
 {
 	if (GetInputAxisValue(InputZ) == 0 && Value == 0) return;
-	
+
 	// Default camera relative movement behavior
 	const FRotator DirRotator(0.0f, AimingRotation.Yaw, 0.0f);
 	AddMovementInput(UKismetMathLibrary::GetUpVector(DirRotator), Value);
@@ -162,7 +164,7 @@ void AALSPlayerCharacter::Input_Jump()
 	// stand up if crouching, or jump if standing.
 
 	if (MovementAction != EALSMovementAction::None) return; // Guard against jumping while doing something else.
-	
+
 	if (MovementState == EALSMovementState::Grounded)
 	{
 		if (bHasMovementInput)
@@ -380,7 +382,8 @@ void AALSPlayerCharacter::OnViewModeChanged(const EALSViewMode PreviousViewMode)
 			// If Third Person, set the rotation mode back to the desired mode.
 			SetRotationMode(DesiredRotationMode);
 		}
-		RestrictAiming = RotationMode == EALSRotationMode::Aiming;break;
+		RestrictAiming = RotationMode == EALSRotationMode::Aiming;
+		break;
 	case EALSViewMode::FirstPerson:
 		{
 			RestrictAiming = true;

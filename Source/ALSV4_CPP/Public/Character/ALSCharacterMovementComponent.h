@@ -63,15 +63,15 @@ public:
 
 	// Set Max Flying Speed (Called from the owning client)
 	UFUNCTION(BlueprintCallable, Category = "Movement Settings")
-    void SetMaxFlyingSpeed(float NewMaxFlySpeed);
+	void SetMaxFlyingSpeed(float NewMaxFlySpeed);
 
 	UFUNCTION(Reliable, Server)
-    void Server_SetMaxFlyingSpeed(float NewMaxFlySpeed);
+	void Server_SetMaxFlyingSpeed(float NewMaxFlySpeed);
 
 	// Set Max Simming Speed (Called from the owning client)
 	UFUNCTION(BlueprintCallable, Category = "Movement Settings")
-    void SetMaxSwimmingSpeed(float NewMaxSwimSpeed);
+	void SetMaxSwimmingSpeed(float NewMaxSwimSpeed);
 
 	UFUNCTION(Reliable, Server)
-    void Server_SetMaxSwimmingSpeed(float NewMaxSwimSpeed);
+	void Server_SetMaxSwimmingSpeed(float NewMaxSwimSpeed);
 };

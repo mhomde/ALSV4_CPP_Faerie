@@ -67,7 +67,7 @@ public:
 	*/
 	UPROPERTY(EditDefaultsOnly, Category = "Flight")
 	float TroposphereHeight = 1000000.f;
-	
+
 	static FORCEINLINE UALS_Settings* Get()
 	{
 		UALS_Settings* Settings = GetMutableDefault<UALS_Settings>();

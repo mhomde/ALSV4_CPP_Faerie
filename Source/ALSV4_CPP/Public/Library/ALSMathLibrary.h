@@ -58,9 +58,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "ALS Math")
 	static EALSMovementDirection CalculateQuadrant(EALSMovementDirection Current,
-												   float FRThreshold,
-												   float FLThreshold,
-												   float BRThreshold,
+	                                               float FRThreshold,
+	                                               float FLThreshold,
+	                                               float BRThreshold,
 	                                               float BLThreshold,
 	                                               float Buffer,
 	                                               float Angle);

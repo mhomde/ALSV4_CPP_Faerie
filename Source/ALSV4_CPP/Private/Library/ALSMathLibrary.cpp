@@ -27,7 +27,7 @@ TPair<float, float> UALSMathLibrary::FixDiagonalGamepadValues(const float Y, con
 	                                                      FMath::Abs(X));
 	ResultY = FMath::Clamp(ResultY, -1.0f, 1.0f);
 	float ResultX = X * FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 0.6f),
-														  FVector2D(1.0f, 1.2f),
+	                                                      FVector2D(1.0f, 1.2f),
 	                                                      FMath::Abs(Y));
 	ResultX = FMath::Clamp(ResultX, -1.0f, 1.0f);
 	return TPair<float, float>(ResultY, ResultX);
@@ -46,7 +46,8 @@ FVector UALSMathLibrary::GetCapsuleLocationFromBase(FVector BaseLocation, const 
 	return BaseLocation;
 }
 
-bool UALSMathLibrary::CapsuleHasRoomCheck(UCapsuleComponent* Capsule, const FVector TargetLocation, const float HeightOffset,
+bool UALSMathLibrary::CapsuleHasRoomCheck(UCapsuleComponent* Capsule, const FVector TargetLocation,
+                                          const float HeightOffset,
                                           float RadiusOffset)
 {
 	// Perform a trace to see if the capsule has room to be at the target location.
@@ -65,16 +66,17 @@ bool UALSMathLibrary::CapsuleHasRoomCheck(UCapsuleComponent* Capsule, const FVec
 
 	FHitResult HitResult;
 	World->SweepSingleByProfile(HitResult,
-									 TraceStart,
-									 TraceEnd,
-									 FQuat::Identity,
-									 UALS_Settings::Get()->ALS_Profile,
-									 FCollisionShape::MakeSphere(Radius), Params);
+	                            TraceStart,
+	                            TraceEnd,
+	                            FQuat::Identity,
+	                            UALS_Settings::Get()->ALS_Profile,
+	                            FCollisionShape::MakeSphere(Radius), Params);
 
 	return !(HitResult.bBlockingHit || HitResult.bStartPenetrating);
 }
 
-bool UALSMathLibrary::AngleInRange(const float Angle, const float MinAngle, const float MaxAngle, const float Buffer, const bool IncreaseBuffer)
+bool UALSMathLibrary::AngleInRange(const float Angle, const float MinAngle, const float MaxAngle, const float Buffer,
+                                   const bool IncreaseBuffer)
 {
 	if (IncreaseBuffer)
 	{
@@ -84,8 +86,8 @@ bool UALSMathLibrary::AngleInRange(const float Angle, const float MinAngle, cons
 }
 
 EALSMovementDirection UALSMathLibrary::CalculateQuadrant(const EALSMovementDirection Current,
-														 const float FRThreshold,
-														 const float FLThreshold,
+                                                         const float FRThreshold,
+                                                         const float FLThreshold,
                                                          const float BRThreshold,
                                                          const float BLThreshold,
                                                          const float Buffer,

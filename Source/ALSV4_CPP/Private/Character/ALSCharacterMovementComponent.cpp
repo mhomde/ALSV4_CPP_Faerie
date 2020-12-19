@@ -12,7 +12,8 @@ UALSCharacterMovementComponent::UALSCharacterMovementComponent(const FObjectInit
 {
 }
 
-void UALSCharacterMovementComponent::OnMovementUpdated(const float DeltaTime, const FVector& OldLocation, const FVector& OldVelocity)
+void UALSCharacterMovementComponent::OnMovementUpdated(const float DeltaTime, const FVector& OldLocation,
+                                                       const FVector& OldVelocity)
 {
 	Super::OnMovementUpdated(DeltaTime, OldLocation, OldVelocity);
 

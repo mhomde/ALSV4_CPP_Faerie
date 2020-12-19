@@ -33,8 +33,8 @@ void AALSCharacter::ClearHeldObject() const
 }
 
 void AALSCharacter::AttachToHand(UStaticMesh* NewStaticMesh,
-								 USkeletalMesh* NewSkeletalMesh,
-								 UClass* NewAnimClass,
+                                 USkeletalMesh* NewSkeletalMesh,
+                                 UClass* NewAnimClass,
                                  const bool bLeftHand,
                                  const FVector Offset) const
 {
@@ -120,7 +120,7 @@ void AALSCharacter::BeginPlay()
 }
 
 void AALSCharacter::MantleStart(const float MantleHeight,
-								const FALSComponentAndTransform& MantleLedgeWS,
+                                const FALSComponentAndTransform& MantleLedgeWS,
                                 const EALSMantleType MantleType)
 {
 	Super::MantleStart(MantleHeight, MantleLedgeWS, MantleType);
