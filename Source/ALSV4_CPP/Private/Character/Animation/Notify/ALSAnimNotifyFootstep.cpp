@@ -14,20 +14,23 @@
 
 void UALSAnimNotifyFootstep::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	if (!MeshComp || !MeshComp->GetAnimInstance())
-	{
-		return;
-	}
+	if (!MeshComp || !MeshComp->GetAnimInstance()) { return; }
 
 	const float MaskCurveValue = MeshComp->GetAnimInstance()->GetCurveValue(FName(TEXT("Mask_FootstepSound")));
 	const float FinalVolMult = bOverrideMaskCurve ? VolumeMultiplier : VolumeMultiplier * (1.0f - MaskCurveValue);
 
 	if (Sound)
 	{
-		UAudioComponent* SpawnedAudio = UGameplayStatics::SpawnSoundAttached(Sound, MeshComp, AttachPointName,
-		                                                                     FVector::ZeroVector, FRotator::ZeroRotator,
-		                                                                     EAttachLocation::Type::KeepRelativeOffset,
-		                                                                     true, FinalVolMult, PitchMultiplier);
+		UAudioComponent* SpawnedAudio = UGameplayStatics::SpawnSoundAttached(
+			Sound,
+			MeshComp,
+			AttachPointName,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::Type::KeepRelativeOffset,
+			true,
+			FinalVolMult,
+			PitchMultiplier);
 		if (SpawnedAudio)
 		{
 			SpawnedAudio->SetIntParameter(FName(TEXT("FootstepType")), static_cast<int32>(FootstepType));

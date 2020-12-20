@@ -37,19 +37,13 @@ void AALSPlayerCameraManager::OnPossess(AALSPlayerCharacter* NewCharacter)
 		SetActorLocation(TPSLoc);
 		SmoothedPivotTarget.SetLocation(TPSLoc);
 	}
-	else
-	{
-		UE_LOG(LogAlsPlayerCameraManager, Warning, TEXT("OnPossess must receive a UALSPlayerCameraBehavior"));
-	}
+	else { UE_LOG(LogAlsPlayerCameraManager, Warning, TEXT("OnPossess must receive a UALSPlayerCameraBehavior")); }
 }
 
 float AALSPlayerCameraManager::GetCameraBehaviorParam(const FName CurveName) const
 {
 	UAnimInstance* Inst = CameraBehavior->GetAnimInstance();
-	if (Inst)
-	{
-		return Inst->GetCurveValue(CurveName);
-	}
+	if (Inst) { return Inst->GetCurveValue(CurveName); }
 	return 0.0f;
 }
 
@@ -73,20 +67,17 @@ void AALSPlayerCameraManager::UpdateViewTargetInternal(FTViewTarget& OutVT, cons
 }
 
 FVector AALSPlayerCameraManager::CalculateAxisIndependentLag(const FVector CurrentLocation,
-                                                             const FVector TargetLocation,
-                                                             FRotator CameraRotation,
-                                                             const FVector LagSpeeds,
-                                                             const float DeltaTime)
+															 const FVector TargetLocation, FRotator CameraRotation,
+															 const FVector LagSpeeds, const float DeltaTime)
 {
 	CameraRotation.Roll = 0.0f;
 	CameraRotation.Pitch = 0.0f;
 	const FVector UnrotatedCurLoc = CameraRotation.UnrotateVector(CurrentLocation);
 	const FVector UnrotatedTargetLoc = CameraRotation.UnrotateVector(TargetLocation);
 
-	const FVector ResultVector(
-		FMath::FInterpTo(UnrotatedCurLoc.X, UnrotatedTargetLoc.X, DeltaTime, LagSpeeds.X),
-		FMath::FInterpTo(UnrotatedCurLoc.Y, UnrotatedTargetLoc.Y, DeltaTime, LagSpeeds.Y),
-		FMath::FInterpTo(UnrotatedCurLoc.Z, UnrotatedTargetLoc.Z, DeltaTime, LagSpeeds.Z));
+	const FVector ResultVector(FMath::FInterpTo(UnrotatedCurLoc.X, UnrotatedTargetLoc.X, DeltaTime, LagSpeeds.X),
+							   FMath::FInterpTo(UnrotatedCurLoc.Y, UnrotatedTargetLoc.Y, DeltaTime, LagSpeeds.Y),
+							   FMath::FInterpTo(UnrotatedCurLoc.Z, UnrotatedTargetLoc.Z, DeltaTime, LagSpeeds.Z));
 
 	return CameraRotation.RotateVector(ResultVector);
 }
@@ -124,23 +115,29 @@ bool AALSPlayerCameraManager::CustomCameraBehavior(float DeltaTime, FVector& Loc
 		UE_LOG(LogAlsPlayerCameraManager, Warning, TEXT("Likely received bad FPFOV"));
 	}
 	
+
 	// Step 2: Calculate Target Camera Rotation. Use the Control Rotation and interpolate for smooth camera rotation.
 	const FRotator& InterpResult = FMath::RInterpTo(GetCameraRotation(),
-	                                                GetOwningPlayerController()->GetControlRotation(), DeltaTime,
-	                                                GetCameraBehaviorParam(FName(TEXT("RotationLagSpeed"))));
+													GetOwningPlayerController()->GetControlRotation(),
+													DeltaTime,
+													GetCameraBehaviorParam(FName(TEXT("RotationLagSpeed"))));
 
-	TargetCameraRotation = UKismetMathLibrary::RLerp(InterpResult, DebugViewRotation,
-	                                                 GetCameraBehaviorParam(TEXT("Override_Debug")), true);
+	TargetCameraRotation = UKismetMathLibrary::RLerp(InterpResult,
+													 DebugViewRotation,
+													 GetCameraBehaviorParam(TEXT("Override_Debug")),
+													 true);
 
 	// Step 3: Calculate the Smoothed Pivot Target (Orange Sphere).
 	// Get the 3P Pivot Target (Green Sphere) and interpolate using axis independent lag for maximum control.
 	const FVector LagSpd(GetCameraBehaviorParam(FName(TEXT("PivotLagSpeed_X"))),
-	                     GetCameraBehaviorParam(FName(TEXT("PivotLagSpeed_Y"))),
-	                     GetCameraBehaviorParam(FName(TEXT("PivotLagSpeed_Z"))));
+						 GetCameraBehaviorParam(FName(TEXT("PivotLagSpeed_Y"))),
+						 GetCameraBehaviorParam(FName(TEXT("PivotLagSpeed_Z"))));
 
 	const FVector& AxisIndpLag = CalculateAxisIndependentLag(SmoothedPivotTarget.GetLocation(),
-	                                                         PivotTarget.GetLocation(), TargetCameraRotation, LagSpd,
-	                                                         DeltaTime);
+															 PivotTarget.GetLocation(),
+															 TargetCameraRotation,
+															 LagSpd,
+															 DeltaTime);
 
 	SmoothedPivotTarget.SetRotation(PivotTarget.GetRotation());
 	SmoothedPivotTarget.SetLocation(AxisIndpLag);
@@ -148,23 +145,20 @@ bool AALSPlayerCameraManager::CustomCameraBehavior(float DeltaTime, FVector& Loc
 
 	// Step 4: Calculate Pivot Location (BlueSphere). Get the Smoothed
 	// Pivot Target and apply local offsets for further camera control.
-	PivotLocation =
-		SmoothedPivotTarget.GetLocation() +
-		UKismetMathLibrary::GetForwardVector(SmoothedPivotTarget.Rotator()) * GetCameraBehaviorParam(
-			FName(TEXT("PivotOffset_X"))) +
-		UKismetMathLibrary::GetRightVector(SmoothedPivotTarget.Rotator()) * GetCameraBehaviorParam(
-			FName(TEXT("PivotOffset_Y"))) +
+	PivotLocation = SmoothedPivotTarget.GetLocation() +
+		UKismetMathLibrary::GetForwardVector(SmoothedPivotTarget.Rotator()) *
+		GetCameraBehaviorParam(FName(TEXT("PivotOffset_X"))) +
+		UKismetMathLibrary::GetRightVector(SmoothedPivotTarget.Rotator()) *
+		GetCameraBehaviorParam(FName(TEXT("PivotOffset_Y"))) +
 		UKismetMathLibrary::GetUpVector(SmoothedPivotTarget.Rotator()) * GetCameraBehaviorParam(
 			FName(TEXT("PivotOffset_Z")));
 
 	// Step 5: Calculate Target Camera Location. Get the Pivot location and apply camera relative offsets.
 	TargetCameraLocation = UKismetMathLibrary::VLerp(
-		PivotLocation +
-		UKismetMathLibrary::GetForwardVector(TargetCameraRotation) * GetCameraBehaviorParam(
-			FName(TEXT("CameraOffset_X"))) +
-		UKismetMathLibrary::GetRightVector(TargetCameraRotation) * GetCameraBehaviorParam(FName(TEXT("CameraOffset_Y")))
-		+
-		UKismetMathLibrary::GetUpVector(TargetCameraRotation) * GetCameraBehaviorParam(FName(TEXT("CameraOffset_Z"))),
+		PivotLocation + UKismetMathLibrary::GetForwardVector(TargetCameraRotation) *
+		GetCameraBehaviorParam(FName(TEXT("CameraOffset_X"))) + UKismetMathLibrary::GetRightVector(TargetCameraRotation)
+		* GetCameraBehaviorParam(FName(TEXT("CameraOffset_Y"))) + UKismetMathLibrary::GetUpVector(TargetCameraRotation)
+		* GetCameraBehaviorParam(FName(TEXT("CameraOffset_Z"))),
 		PivotTarget.GetLocation() + DebugViewOffset,
 		GetCameraBehaviorParam(FName(TEXT("Override_Debug"))));
 
@@ -183,13 +177,15 @@ bool AALSPlayerCameraManager::CustomCameraBehavior(float DeltaTime, FVector& Loc
 	Params.AddIgnoredActor(ControlledCharacter);
 
 	FHitResult HitResult;
-	World->SweepSingleByChannel(HitResult, TraceOrigin, TargetCameraLocation, FQuat::Identity,
-	                            TraceChannel, FCollisionShape::MakeSphere(TraceRadius), Params);
+	World->SweepSingleByChannel(HitResult,
+								TraceOrigin,
+								TargetCameraLocation,
+								FQuat::Identity,
+								TraceChannel,
+								FCollisionShape::MakeSphere(TraceRadius),
+								Params);
 
-	if (HitResult.IsValidBlockingHit())
-	{
-		TargetCameraLocation += (HitResult.Location - HitResult.TraceEnd);
-	}
+	if (HitResult.IsValidBlockingHit()) { TargetCameraLocation += (HitResult.Location - HitResult.TraceEnd); }
 
 	// Step 7: Draw Debug Shapes.
 	DrawDebugTargets(PivotTarget.GetLocation());

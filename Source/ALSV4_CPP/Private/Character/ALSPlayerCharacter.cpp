@@ -82,10 +82,7 @@ ECollisionChannel AALSPlayerCharacter::GetThirdPersonTraceParams(FVector& TraceO
 	return ECC_Visibility;
 }
 
-FTransform AALSPlayerCharacter::GetThirdPersonPivotTarget()
-{
-	return GetActorTransform();
-}
+FTransform AALSPlayerCharacter::GetThirdPersonPivotTarget() { return GetActorTransform(); }
 
 FVector AALSPlayerCharacter::GetFirstPersonCameraTarget()
 {
@@ -143,20 +140,11 @@ void AALSPlayerCharacter::MovementInput_Z(const float Value)
 	AddMovementInput(UKismetMathLibrary::GetUpVector(DirRotator), Value);
 }
 
-void AALSPlayerCharacter::CameraPitchInput(const float Value)
-{
-	AddControllerPitchInput(LookPitchRate * Value);
-}
+void AALSPlayerCharacter::CameraPitchInput(const float Value) { AddControllerPitchInput(LookPitchRate * Value); }
 
-void AALSPlayerCharacter::CameraYawInput(const float Value)
-{
-	AddControllerYawInput(LookYawRate * Value);
-}
+void AALSPlayerCharacter::CameraYawInput(const float Value) { AddControllerYawInput(LookYawRate * Value); }
 
-void AALSPlayerCharacter::CameraRollInput(const float Value)
-{
-	AddControllerRollInput(LookRollRate * Value);
-}
+void AALSPlayerCharacter::CameraRollInput(const float Value) { AddControllerRollInput(LookRollRate * Value); }
 
 void AALSPlayerCharacter::Input_Jump()
 {
@@ -171,14 +159,8 @@ void AALSPlayerCharacter::Input_Jump()
 		{
 			if (MantleCheckGrounded()) { return; } // Check to see if there is a mantle to perform instead.
 		}
-		if (Stance == EALSStance::Standing)
-		{
-			Jump();
-		}
-		else if (Stance == EALSStance::Crouching)
-		{
-			UnCrouch();
-		}
+		if (Stance == EALSStance::Standing) { Jump(); }
+		else if (Stance == EALSStance::Crouching) { UnCrouch(); }
 	}
 	else if (MovementState == EALSMovementState::Freefall)
 	{
@@ -188,31 +170,16 @@ void AALSPlayerCharacter::Input_Jump()
 	}
 	else if (MovementState == EALSMovementState::Flight)
 	{
-		if (FlightMode == EALSFlightMode::Lowering)
-		{
-			SetFlightMode(EALSFlightMode::Neutral);
-		}
+		if (FlightMode == EALSFlightMode::Lowering) { SetFlightMode(EALSFlightMode::Neutral); }
 	}
-	else if (MovementState == EALSMovementState::Ragdoll)
-	{
-		ReplicatedRagdollEnd();
-	}
+	else if (MovementState == EALSMovementState::Ragdoll) { ReplicatedRagdollEnd(); }
 }
 
-void AALSPlayerCharacter::Input_Jump_Release()
-{
-	StopJumping();
-}
+void AALSPlayerCharacter::Input_Jump_Release() { StopJumping(); }
 
-void AALSPlayerCharacter::Input_Sprint()
-{
-	SetDesiredGait(EALSGait::GaitFast);
-}
+void AALSPlayerCharacter::Input_Sprint() { SetDesiredGait(EALSGait::GaitFast); }
 
-void AALSPlayerCharacter::Input_Sprint_Release()
-{
-	SetDesiredGait(EALSGait::GaitNormal);
-}
+void AALSPlayerCharacter::Input_Sprint_Release() { SetDesiredGait(EALSGait::GaitNormal); }
 
 void AALSPlayerCharacter::Input_Aim()
 {
@@ -222,14 +189,8 @@ void AALSPlayerCharacter::Input_Aim()
 
 void AALSPlayerCharacter::Input_Aim_Release()
 {
-	if (ViewMode == EALSViewMode::ThirdPerson)
-	{
-		SetRotationMode(DesiredRotationMode);
-	}
-	else if (ViewMode == EALSViewMode::FirstPerson)
-	{
-		SetRotationMode(EALSRotationMode::LookingDirection);
-	}
+	if (ViewMode == EALSViewMode::ThirdPerson) { SetRotationMode(DesiredRotationMode); }
+	else if (ViewMode == EALSViewMode::FirstPerson) { SetRotationMode(EALSRotationMode::LookingDirection); }
 }
 
 void AALSPlayerCharacter::Camera_Action()
@@ -237,8 +198,11 @@ void AALSPlayerCharacter::Camera_Action()
 	UWorld* World = GetWorld();
 	check(World);
 	CameraActionPressedTime = World->GetTimeSeconds();
-	GetWorldTimerManager().SetTimer(OnCameraModeSwapTimer, this,
-	                                &AALSPlayerCharacter::OnSwitchCameraMode, ViewModeSwitchHoldTime, false);
+	GetWorldTimerManager().SetTimer(OnCameraModeSwapTimer,
+									this,
+									&AALSPlayerCharacter::OnSwitchCameraMode,
+									ViewModeSwitchHoldTime,
+									false);
 }
 
 void AALSPlayerCharacter::Camera_Action_Release()
@@ -258,14 +222,8 @@ void AALSPlayerCharacter::Camera_Action_Release()
 void AALSPlayerCharacter::OnSwitchCameraMode()
 {
 	// Switch camera mode
-	if (ViewMode == EALSViewMode::FirstPerson)
-	{
-		SetViewMode(EALSViewMode::ThirdPerson);
-	}
-	else if (ViewMode == EALSViewMode::ThirdPerson)
-	{
-		SetViewMode(EALSViewMode::FirstPerson);
-	}
+	if (ViewMode == EALSViewMode::FirstPerson) { SetViewMode(EALSViewMode::ThirdPerson); }
+	else if (ViewMode == EALSViewMode::ThirdPerson) { SetViewMode(EALSViewMode::FirstPerson); }
 }
 
 void AALSPlayerCharacter::Input_Stance()
@@ -285,14 +243,8 @@ void AALSPlayerCharacter::Input_Stance()
 		// Roll
 		Replicated_PlayMontage(GetRollAnimation(), 1.15f);
 
-		if (Stance == EALSStance::Standing)
-		{
-			SetDesiredStance(EALSStance::Crouching);
-		}
-		else if (Stance == EALSStance::Crouching)
-		{
-			SetDesiredStance(EALSStance::Standing);
-		}
+		if (Stance == EALSStance::Standing) { SetDesiredStance(EALSStance::Crouching); }
+		else if (Stance == EALSStance::Crouching) { SetDesiredStance(EALSStance::Standing); }
 		return;
 	}
 
@@ -313,28 +265,16 @@ void AALSPlayerCharacter::Input_Stance()
 
 void AALSPlayerCharacter::Input_Gait()
 {
-	if (DesiredGait == EALSGait::GaitSlow)
-	{
-		SetDesiredGait(EALSGait::GaitNormal);
-	}
-	else if (DesiredGait == EALSGait::GaitNormal)
-	{
-		SetDesiredGait(EALSGait::GaitSlow);
-	}
+	if (DesiredGait == EALSGait::GaitSlow) { SetDesiredGait(EALSGait::GaitNormal); }
+	else if (DesiredGait == EALSGait::GaitNormal) { SetDesiredGait(EALSGait::GaitSlow); }
 }
 
 void AALSPlayerCharacter::Input_Ragdoll()
 {
 	// Ragdoll Action: Press "Ragdoll Action" to toggle the ragdoll state on or off.
 
-	if (GetMovementState() == EALSMovementState::Ragdoll)
-	{
-		ReplicatedRagdollEnd();
-	}
-	else
-	{
-		ReplicatedRagdollStart();
-	}
+	if (GetMovementState() == EALSMovementState::Ragdoll) { ReplicatedRagdollEnd(); }
+	else { ReplicatedRagdollStart(); }
 }
 
 void AALSPlayerCharacter::Input_VelocityDirection()
@@ -359,10 +299,7 @@ void AALSPlayerCharacter::SetViewMode(const EALSViewMode NewViewMode)
 		ViewMode = NewViewMode;
 		OnViewModeChanged(Prev);
 
-		if (GetLocalRole() == ROLE_AutonomousProxy)
-		{
-			Server_SetViewMode(NewViewMode);
-		}
+		if (GetLocalRole() == ROLE_AutonomousProxy) { Server_SetViewMode(NewViewMode); }
 	}
 }
 
@@ -400,7 +337,4 @@ void AALSPlayerCharacter::OnViewModeChanged(const EALSViewMode PreviousViewMode)
 	ViewModeChangedDelegate.Broadcast(this, PreviousViewMode);
 }
 
-void AALSPlayerCharacter::OnRep_ViewMode(const EALSViewMode PrevViewMode)
-{
-	OnViewModeChanged(PrevViewMode);
-}
+void AALSPlayerCharacter::OnRep_ViewMode(const EALSViewMode PrevViewMode) { OnViewModeChanged(PrevViewMode); }

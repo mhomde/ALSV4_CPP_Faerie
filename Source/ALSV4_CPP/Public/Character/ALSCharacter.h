@@ -30,8 +30,8 @@ public:
 	void ClearHeldObject() const;
 
 	UFUNCTION(BlueprintCallable, Category = "ALS|HeldObject")
-	void AttachToHand(UStaticMesh* NewStaticMesh, USkeletalMesh* NewSkeletalMesh,
-	                  class UClass* NewAnimClass, bool bLeftHand, FVector Offset) const;
+	void AttachToHand(UStaticMesh* NewStaticMesh, USkeletalMesh* NewSkeletalMesh, class UClass* NewAnimClass,
+					  bool bLeftHand, FVector Offset) const;
 
 	virtual void RagdollStart() override;
 
@@ -50,8 +50,8 @@ protected:
 
 	virtual void OnOverlayStateChanged(EALSOverlayState PreviousState) override;
 
-	virtual void MantleStart(
-		float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS, EALSMantleType MantleType) override;
+	virtual void MantleStart(float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS,
+							 EALSMantleType MantleType) override;
 
 	virtual void MantleEnd() override;
 

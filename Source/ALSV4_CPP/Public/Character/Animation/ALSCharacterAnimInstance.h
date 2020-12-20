@@ -89,10 +89,7 @@ public:
 	bool CanDynamicTransition() const;
 
 	/** Return mutable reference of character information to edit them easily inside character class */
-	FALSAnimCharacterInformation& GetCharacterInformationMutable()
-	{
-		return CharacterInformation;
-	}
+	FALSAnimCharacterInformation& GetCharacterInformationMutable() { return CharacterInformation; }
 
 private:
 	void PlayDynamicTransitionDelay();
@@ -120,8 +117,8 @@ private:
 	/** Foot IK */
 
 	void SetFootLocking(float DeltaSeconds, FName EnableFootIKCurve, FName FootLockCurve, FName IKFootBone,
-	                    float& CurFootLockAlpha, bool& UseFootLockCurve,
-	                    FVector& CurFootLockLoc, FRotator& CurFootLockRot) const;
+						float& CurFootLockAlpha, bool& UseFootLockCurve, FVector& CurFootLockLoc,
+						FRotator& CurFootLockRot) const;
 
 	void SetFootLockOffsets(float DeltaSeconds, FVector& LocalLoc, FRotator& LocalRot) const;
 
@@ -130,7 +127,7 @@ private:
 	void ResetIKOffsets(float DeltaSeconds);
 
 	void SetFootOffsets(float DeltaSeconds, FName EnableFootIKCurve, FName IKFootBone, FName RootBone,
-	                    FVector& CurLocationTarget, FVector& CurLocationOffset, FRotator& CurRotationOffset) const;
+						FVector& CurLocationTarget, FVector& CurLocationOffset, FRotator& CurRotationOffset) const;
 
 	/** Grounded */
 

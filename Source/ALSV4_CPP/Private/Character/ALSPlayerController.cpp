@@ -15,10 +15,7 @@ void AALSPlayerController::OnPossess(APawn* NewPawn)
 	Super::OnPossess(NewPawn);
 
 	// Servers want to setup camera only in listen servers.
-	if (!IsRunningDedicatedServer())
-	{
-		SetupCamera();
-	}
+	if (!IsRunningDedicatedServer()) { SetupCamera(); }
 }
 
 void AALSPlayerController::OnRep_Pawn()
@@ -34,8 +31,5 @@ void AALSPlayerController::SetupCamera()
 
 	// Call "OnPossess" in Player Camera Manager when possessing a pawn
 	AALSPlayerCameraManager* CastedMgr = Cast<AALSPlayerCameraManager>(PlayerCameraManager);
-	if (CastedMgr)
-	{
-		CastedMgr->OnPossess(PossessedCharacter);
-	}
+	if (CastedMgr) { CastedMgr->OnPossess(PossessedCharacter); }
 }

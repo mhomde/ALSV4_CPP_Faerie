@@ -26,7 +26,7 @@ class ALSV4_CPP_API UALSCharacterMovementComponent : public UCharacterMovementCo
 		virtual void Clear() override;
 		virtual uint8 GetCompressedFlags() const override;
 		virtual void SetMoveFor(ACharacter* Character, float InDeltaTime, FVector const& NewAccel,
-		                        class FNetworkPredictionData_Client_Character& ClientData) override;
+								class FNetworkPredictionData_Client_Character& ClientData) override;
 
 		// Walk Speed Update
 		uint8 bSavedRequestMovementSettingsChange : 1;
