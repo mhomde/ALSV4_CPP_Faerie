@@ -14,10 +14,12 @@
 
 class AALSPlayerCharacter;
 
+DECLARE_LOG_CATEGORY_EXTERN(LogAlsPlayerCameraManager, Log, All)
+
 /**
  * Player camera manager class
  */
-UCLASS(Blueprintable, BlueprintType)
+UCLASS(BlueprintType)
 class ALSV4_CPP_API AALSPlayerCameraManager : public APlayerCameraManager
 {
 	GENERATED_BODY()

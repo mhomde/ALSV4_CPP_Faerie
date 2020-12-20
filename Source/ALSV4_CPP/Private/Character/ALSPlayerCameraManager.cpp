@@ -5,11 +5,12 @@
 // Original Author: Doğa Can Yanıkoğlu
 // Contributors:    
 
-
 #include "Character/ALSPlayerCameraManager.h"
 #include "Character/ALSPlayerCharacter.h"
 #include "Character/Animation/ALSPlayerCameraBehavior.h"
 #include "Kismet/KismetMathLibrary.h"
+
+DEFINE_LOG_CATEGORY(LogAlsPlayerCameraManager)
 
 AALSPlayerCameraManager::AALSPlayerCameraManager()
 {
@@ -35,6 +36,10 @@ void AALSPlayerCameraManager::OnPossess(AALSPlayerCharacter* NewCharacter)
 		const FVector& TPSLoc = ControlledCharacter->GetThirdPersonPivotTarget().GetLocation();
 		SetActorLocation(TPSLoc);
 		SmoothedPivotTarget.SetLocation(TPSLoc);
+	}
+	else
+	{
+		UE_LOG(LogAlsPlayerCameraManager, Warning, TEXT("OnPossess must receive a UALSPlayerCameraBehavior"));
 	}
 }
 
@@ -90,6 +95,7 @@ bool AALSPlayerCameraManager::CustomCameraBehavior(float DeltaTime, FVector& Loc
 {
 	if (!ControlledCharacter)
 	{
+		UE_LOG(LogAlsPlayerCameraManager, Warning, TEXT("Behavior has null Controlled Character"));
 		return false;
 	}
 
@@ -101,6 +107,23 @@ bool AALSPlayerCameraManager::CustomCameraBehavior(float DeltaTime, FVector& Loc
 	bool bRightShoulder = false;
 	ControlledCharacter->GetCameraParameters(TPFOV, FPFOV, bRightShoulder);
 
+	if (!PivotTarget.IsValid())
+	{
+		UE_LOG(LogAlsPlayerCameraManager, Warning, TEXT("Likely received bad PivotTarget"));
+	}
+	if (FPTarget.IsZero())
+	{
+		UE_LOG(LogAlsPlayerCameraManager, Warning, TEXT("Likely received bad FPTarget"));
+	}
+	if (TPFOV < 10)
+	{
+		UE_LOG(LogAlsPlayerCameraManager, Warning, TEXT("Likely received bad TPFOV"));
+	}
+	if (FPFOV < 10)
+	{
+		UE_LOG(LogAlsPlayerCameraManager, Warning, TEXT("Likely received bad FPFOV"));
+	}
+	
 	// Step 2: Calculate Target Camera Rotation. Use the Control Rotation and interpolate for smooth camera rotation.
 	const FRotator& InterpResult = FMath::RInterpTo(GetCameraRotation(),
 	                                                GetOwningPlayerController()->GetControlRotation(), DeltaTime,
