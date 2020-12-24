@@ -279,6 +279,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Utilities")
 	float GetAtmospherePressure() const;
 
+#if WITH_EDITOR
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "ALS|Debug")
+	bool DrawDebug;
+
+#endif
+
 	/** Implement on BP to draw debug spheres */
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "ALS|Debug")
 	void DrawDebugSpheres();

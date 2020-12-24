@@ -8,20 +8,20 @@
 
 #include "Character/ALSBaseCharacter.h"
 #include "ALS_Settings.h"
-#include "DrawDebugHelpers.h"
-#include "Character/ALSPlayerController.h"
 #include "Character/Animation/ALSCharacterAnimInstance.h"
 #include "Library/ALSMathLibrary.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/TimelineComponent.h"
 #include "Curves/CurveVector.h"
 #include "Curves/CurveFloat.h"
-#include "Character/ALSCharacterMovementComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
+#include "Character/ALSCharacterMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#if WITH_EDITOR
+#include "DrawDebugHelpers.h"
+#endif
 
 AALSBaseCharacter::AALSBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UALSCharacterMovementComponent>(CharacterMovementComponentName))
@@ -136,7 +136,7 @@ void AALSBaseCharacter::BeginPlay()
 	MantleTimeline->SetTimelineLengthMode(TL_TimelineLength);
 	MantleTimeline->AddInterpFloat(MantleTimelineCurve, TimelineUpdated);
 
-	// Make sure the mesh and animbp update after the CharacterBP to ensure it gets the most recent values.
+	// Make sure the mesh and AnimBP update after the CharacterBP to ensure it gets the most recent values.
 	GetMesh()->AddTickPrerequisiteActor(this);
 
 	// Set the Movement Model
@@ -247,7 +247,9 @@ void AALSBaseCharacter::Tick(const float DeltaTime)
 	PreviousVelocity = GetVelocity();
 	PreviousAimYaw = AimingRotation.Yaw;
 
-	DrawDebugSpheres();
+#if WITH_EDITOR
+	if (DrawDebug) DrawDebugSpheres();
+#endif
 }
 
 void AALSBaseCharacter::SetAimYawRate(const float NewAimYawRate)
@@ -502,7 +504,7 @@ bool AALSBaseCharacter::MantleCheckVault()
 	// Grab and cache the automatic trace settings.
 	FALSMantleTraceSettings MantleTrace = AutomaticTraceSettings;
 
-	// Adjust for seemless vaulting.
+	// Adjust for seamless vaulting.
 	MantleTrace.MinLedgeHeight = GetCharacterMovement()->MaxStepHeight; // Ensures that the autovault will always trigger at the height that stepping up cuts out.
 
 	// Attempt mantle.
@@ -664,7 +666,7 @@ float AALSBaseCharacter::GetAbsoluteAltitude() const
 
 float AALSBaseCharacter::GetAtmospherePressure() const
 {
-	// If AtmosphericPressureFalloff, then atmosphere falloff is considered disabled and will always return 1.
+	// If there is no curve, then atmosphere falloff is considered disabled and will always return 1.
 	if (!AtmosphericPressureFalloff) return 1;
 	return AtmosphericPressureFalloff->GetFloatValue(GetAbsoluteAltitude() / TroposphereHeight);
 }
@@ -716,7 +718,7 @@ void AALSBaseCharacter::SetActorLocationDuringRagdoll(const float DeltaTime)
 		}
 	}
 
-	// Determine wether the ragdoll is facing up or down and set the target rotation accordingly.
+	// Determine whether the ragdoll is facing up or down and set the target rotation accordingly.
 	const FRotator PelvisRot = GetMesh()->GetSocketRotation(FName(TEXT("Pelvis")));
 
 	bRagdollFaceUp = PelvisRot.Roll < 0.0f;
@@ -782,7 +784,7 @@ void AALSBaseCharacter::OnMovementStateChanged(const EALSMovementState PreviousS
 	{
 		if (MovementAction == EALSMovementAction::None)
 		{
-			// If the character enters the air, set the In Air Rotation and uncrouch if crouched.
+			// If the character enters the air, set the In Air Rotation and un-crouch if crouched.
 			InAirRotation = GetActorRotation();
 			if (Stance == EALSStance::Crouching)
 			{
@@ -791,13 +793,13 @@ void AALSBaseCharacter::OnMovementStateChanged(const EALSMovementState PreviousS
 		}
 		else if (MovementAction == EALSMovementAction::Rolling && bRagdollOnRollfall)
 		{
-			// If the character is currently rolling, enable the ragdoll.
+			// If the character is currently rolling, enable the rag-doll.
 			ReplicatedRagdollStart();
 		}
 	}
 	else if (MovementState == EALSMovementState::Ragdoll && PreviousState == EALSMovementState::Mantling)
 	{
-		// Stop the Mantle Timeline if transitioning to the ragdoll state while mantling.
+		// Stop the Mantle Timeline if transitioning to the rag-doll state while mantling.
 		MantleTimeline->Stop();
 	}
 }
@@ -1063,7 +1065,7 @@ void AALSBaseCharacter::UpdateFlightMovement(const float DeltaTime)
 	const float LocalTemperatureAffect = TemperatureAffect.Y;
 	const float LocalWeightAffect = WeightAffect.Y;
 
-	// @TODO Design a algorythm for calculating thrust, and use it to determine lift. modify autothrust with that so that the player slowly drifts down when too heavy. 
+	// @TODO Design a algorithm for calculating thrust, and use it to determine lift. modify auto-thrust with that so that the player slowly drifts down when too heavy. 
 
 	switch (FlightMode)
 	{
@@ -1351,7 +1353,7 @@ void AALSBaseCharacter::UpdateFlightRotation(const float DeltaTime)
 	                                                               {0.f, 1.f},
 	                                                               RelativeAltitude);
 
-	// Combine unit scalers equal to smaller.
+	// Combine unit scalars equal to smaller.
 	const float RotationAlpha = Alpha_Altitude * (SpeedCache / 3);
 
 	// Calculate input leaning.
@@ -1454,7 +1456,7 @@ void AALSBaseCharacter::MantleStart(const float MantleHeight, const FALSComponen
 	MantleTimeline->SetPlayRate(MantleParams.PlayRate);
 	MantleTimeline->PlayFromStart();
 
-	// Step 7: Play the Anim Montaget if valid.
+	// Step 7: Play the Anim Montage if valid.
 	if (IsValid(MantleParams.AnimMontage))
 	{
 		MainAnimInstance->Montage_Play(MantleParams.AnimMontage, MantleParams.PlayRate,
@@ -1478,7 +1480,9 @@ bool AALSBaseCharacter::MantleCheck(const FALSMantleTraceSettings& TraceSettings
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
-	DrawDebugLine(World, TraceStart, TraceEnd, FColor::Red, false, 1.f, 0, 3);
+#if WITH_EDITOR
+	if (DrawDebug) DrawDebugLine(World, TraceStart, TraceEnd, FColor::Red, false, 1.f, 0, 3);
+#endif
 
 	FHitResult HitResult;
 	World->SweepSingleByChannel(HitResult, TraceStart, TraceEnd, FQuat::Identity,
@@ -1508,7 +1512,9 @@ bool AALSBaseCharacter::MantleCheck(const FALSMantleTraceSettings& TraceSettings
 	FVector DownwardTraceStart = DownwardTraceEnd;
 	DownwardTraceStart.Z += TraceSettings.MaxLedgeHeight + TraceSettings.DownwardTraceRadius + 1.0f;
 
-	DrawDebugLine(World, DownwardTraceStart, DownwardTraceEnd, FColor::Blue, false, 1.f, 0, 3);
+#if WITH_EDITOR
+	if (DrawDebug) DrawDebugLine(World, DownwardTraceStart, DownwardTraceEnd, FColor::Blue, false, 1.f, 0, 3);
+#endif
 
 	World->SweepSingleByChannel(HitResult, DownwardTraceStart, DownwardTraceEnd, FQuat::Identity,
 	                            UALS_Settings::Get()->MantleCheckChannel,
@@ -1559,7 +1565,7 @@ bool AALSBaseCharacter::MantleCheck(const FALSMantleTraceSettings& TraceSettings
 	return true;
 }
 
-// This function is called by "MantleTimeline" using BindUFunction in the AALSBaseCharacter::BeginPlay during the default settings initalization.
+// This function is called by "MantleTimeline" using BindUFunction in the AALSBaseCharacter::BeginPlay during the default settings initialization.
 void AALSBaseCharacter::MantleUpdate(const float BlendIn)
 {
 	// Step 1: Continually update the mantle target from the stored local transform to follow along with moving objects
@@ -1612,12 +1618,12 @@ void AALSBaseCharacter::MantleUpdate(const float BlendIn)
 		PositionAlpha);
 
 	// Initial Blend In (controlled in the timeline curve) to allow the actor to blend into the Position/Correction
-	// curve at the midoint. This prevents pops when mantling an object lower than the animated mantle.
+	// curve at the midpoint. This prevents pops when mantling an object lower than the animated mantle.
 	const FTransform& LerpedTarget =
 		UKismetMathLibrary::TLerp(UALSMathLibrary::TransfromAdd(MantleTarget, MantleActualStartOffset), ResultLerp,
 		                          BlendIn);
 
-	// Step 4: Set the actors location and rotation to the Lerped Target.
+	// Step 4: Set the actors location and rotation to the lerped Target.
 	SetActorLocationAndTargetRotation(LerpedTarget.GetLocation(), LerpedTarget.GetRotation().Rotator());
 }
 
@@ -1682,7 +1688,7 @@ EALSGait AALSBaseCharacter::GetActualGait(const EALSGait AllowedGait) const
 {
 	// Get the Actual Gait. This is calculated by the actual movement of the character,  and so it can be different
 	// from the desired gait or allowed gait. For instance, if the Allowed Gait becomes walking,
-	// the Actual gait will still be running untill the character decelerates to the walking speed.
+	// the Actual gait will still be running until the character decelerates to the walking speed.
 
 	const float LocWalkSpeed = CurrentMovementSettings.SlowSpeed;
 	const float LocRunSpeed = CurrentMovementSettings.NormalSpeed;
@@ -1759,8 +1765,10 @@ float AALSBaseCharacter::FlightDistanceCheck(const float CheckDistance, const FV
 	const FVector CheckStart = GetActorLocation() - FVector{0, 0, GetCapsuleComponent()->GetScaledCapsuleHalfHeight()};
 	const FVector CheckEnd = CheckStart + (Direction * CheckDistance);
 	World->LineTraceSingleByChannel(HitResult, CheckStart, CheckEnd, UALS_Settings::Get()->FlightCheckChannel, Params);
-
-	DrawDebugLine(World, CheckStart, CheckEnd, FColor::Silver, false, 0.5f, 0, 2);
+	
+#if WITH_EDITOR
+	if (DrawDebug) DrawDebugLine(World, CheckStart, CheckEnd, FColor::Silver, false, 0.5f, 0, 2);
+#endif
 
 	if (HitResult.bBlockingHit)
 	{
