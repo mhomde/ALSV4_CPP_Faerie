@@ -13,14 +13,11 @@ UALSCharacterMovementComponent::UALSCharacterMovementComponent(const FObjectInit
 }
 
 void UALSCharacterMovementComponent::OnMovementUpdated(const float DeltaTime, const FVector& OldLocation,
-                                                       const FVector& OldVelocity)
+													   const FVector& OldVelocity)
 {
 	Super::OnMovementUpdated(DeltaTime, OldLocation, OldVelocity);
 
-	if (!CharacterOwner)
-	{
-		return;
-	}
+	if (!CharacterOwner) { return; }
 
 	// Set Movement Settings
 	if (bRequestMovementSettingsChange)
@@ -66,33 +63,25 @@ uint8 UALSCharacterMovementComponent::FSavedMove_Faerie::GetCompressedFlags() co
 {
 	uint8 Result = Super::GetCompressedFlags();
 
-	if (bSavedRequestMovementSettingsChange)
-	{
-		Result |= FLAG_Custom_0;
-	}
+	if (bSavedRequestMovementSettingsChange) { Result |= FLAG_Custom_0; }
 
 	return Result;
 }
 
-void UALSCharacterMovementComponent::FSavedMove_Faerie::SetMoveFor(ACharacter* Character,
-																   const float InDeltaTime,
+void UALSCharacterMovementComponent::FSavedMove_Faerie::SetMoveFor(ACharacter* Character, const float InDeltaTime,
 																   FVector const& NewAccel,
-																   class FNetworkPredictionData_Client_Character& ClientData)
+																   class FNetworkPredictionData_Client_Character&
+																   ClientData)
 {
 	Super::SetMoveFor(Character, InDeltaTime, NewAccel, ClientData);
 
-	UALSCharacterMovementComponent* CharacterMovement = Cast<UALSCharacterMovementComponent>(Character->GetCharacterMovement());
-	if (CharacterMovement)
-	{
-		bSavedRequestMovementSettingsChange = CharacterMovement->bRequestMovementSettingsChange;
-	}
+	UALSCharacterMovementComponent* CharacterMovement = Cast<UALSCharacterMovementComponent>(
+		Character->GetCharacterMovement());
+	if (CharacterMovement) { bSavedRequestMovementSettingsChange = CharacterMovement->bRequestMovementSettingsChange; }
 }
 
 UALSCharacterMovementComponent::FNetworkPredictionData_Client_Faerie::FNetworkPredictionData_Client_Faerie(
-	const UCharacterMovementComponent& ClientMovement)
-	: Super(ClientMovement)
-{
-}
+	const UCharacterMovementComponent& ClientMovement) : Super(ClientMovement) {}
 
 FSavedMovePtr UALSCharacterMovementComponent::FNetworkPredictionData_Client_Faerie::AllocateNewMove()
 {

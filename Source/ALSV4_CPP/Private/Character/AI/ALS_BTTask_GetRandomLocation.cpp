@@ -30,10 +30,7 @@ EBTNodeResult::Type UALS_BTTask_GetRandomLocation::ExecuteTask(UBehaviorTreeComp
 		if (Filter)
 		{
 			const ANavigationData* NavData = NavSys->GetDefaultNavDataInstance(FNavigationSystem::DontCreate);
-			if (NavData)
-			{
-				SharedFilter = UNavigationQueryFilter::GetQueryFilter(*NavData, World, Filter);
-			}
+			if (NavData) { SharedFilter = UNavigationQueryFilter::GetQueryFilter(*NavData, World, Filter); }
 		}
 
 		const FVector Origin = Pawn->GetActorLocation();
@@ -51,6 +48,8 @@ EBTNodeResult::Type UALS_BTTask_GetRandomLocation::ExecuteTask(UBehaviorTreeComp
 
 FString UALS_BTTask_GetRandomLocation::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("Get Random Location\nMax Distance: %d\nFilter:%s"), FMath::RoundToInt(MaxDistance),
-	                       Filter ? *GetNameSafe(Filter.Get()) : TEXT("None"));
+	return FString::Printf(
+		TEXT("Get Random Location\nMax Distance: %d\nFilter:%s"),
+		FMath::RoundToInt(MaxDistance),
+		Filter ? *GetNameSafe(Filter.Get()) : TEXT("None"));
 }

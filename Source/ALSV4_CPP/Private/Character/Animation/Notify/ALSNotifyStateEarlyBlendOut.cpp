@@ -11,41 +11,20 @@
 #include "Character/ALSBaseCharacter.h"
 
 void UALSNotifyStateEarlyBlendOut::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
-                                              float FrameDeltaTime)
+											  float FrameDeltaTime)
 {
-	if (!MeshComp || !MeshComp->GetAnimInstance())
-	{
-		return;
-	}
+	if (!MeshComp || !MeshComp->GetAnimInstance()) { return; }
 
 	UAnimInstance* AnimInstance = MeshComp->GetAnimInstance();
 	AALSBaseCharacter* OwnerCharacter = Cast<AALSBaseCharacter>(MeshComp->GetOwner());
-	if (!OwnerCharacter)
-	{
-		return;
-	}
+	if (!OwnerCharacter) { return; }
 
 	bool bStopMontage = false;
-	if (bCheckMovementState && OwnerCharacter->GetMovementState() == MovementStateEquals)
-	{
-		bStopMontage = true;
-	}
-	else if (bCheckStance && OwnerCharacter->GetStance() == StanceEquals)
-	{
-		bStopMontage = true;
-	}
-	else if (bCheckMovementInput && OwnerCharacter->HasMovementInput())
-	{
-		bStopMontage = true;
-	}
+	if (bCheckMovementState && OwnerCharacter->GetMovementState() == MovementStateEquals) { bStopMontage = true; }
+	else if (bCheckStance && OwnerCharacter->GetStance() == StanceEquals) { bStopMontage = true; }
+	else if (bCheckMovementInput && OwnerCharacter->HasMovementInput()) { bStopMontage = true; }
 
-	if (bStopMontage)
-	{
-		AnimInstance->Montage_Stop(BlendOutTime, ThisMontage);
-	}
+	if (bStopMontage) { AnimInstance->Montage_Stop(BlendOutTime, ThisMontage); }
 }
 
-FString UALSNotifyStateEarlyBlendOut::GetNotifyName_Implementation() const
-{
-	return FString(TEXT("Early Blend Out"));
-}
+FString UALSNotifyStateEarlyBlendOut::GetNotifyName_Implementation() const { return FString(TEXT("Early Blend Out")); }

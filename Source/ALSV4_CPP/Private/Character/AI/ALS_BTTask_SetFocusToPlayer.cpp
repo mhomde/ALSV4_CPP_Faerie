@@ -9,10 +9,7 @@
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "AIController.h"
 
-UALS_BTTask_SetFocusToPlayer::UALS_BTTask_SetFocusToPlayer()
-{
-	NodeName = "Focus On Player";
-}
+UALS_BTTask_SetFocusToPlayer::UALS_BTTask_SetFocusToPlayer() { NodeName = "Focus On Player"; }
 
 EBTNodeResult::Type UALS_BTTask_SetFocusToPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
@@ -26,7 +23,4 @@ EBTNodeResult::Type UALS_BTTask_SetFocusToPlayer::ExecuteTask(UBehaviorTreeCompo
 	return EBTNodeResult::Failed;
 }
 
-FString UALS_BTTask_SetFocusToPlayer::GetStaticDescription() const
-{
-	return "Set Focus to player's pawn";
-}
+FString UALS_BTTask_SetFocusToPlayer::GetStaticDescription() const { return "Set Focus to player's pawn"; }

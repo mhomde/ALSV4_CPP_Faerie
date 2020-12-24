@@ -13,10 +13,7 @@
 void UALSAnimNotifyGroundedEntryState::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
 	UALSCharacterAnimInstance* AnimIns = Cast<UALSCharacterAnimInstance>(MeshComp->GetAnimInstance());
-	if (AnimIns)
-	{
-		AnimIns->SetGroundedEntryState(GroundedEntryState);
-	}
+	if (AnimIns) { AnimIns->SetGroundedEntryState(GroundedEntryState); }
 }
 
 FString UALSAnimNotifyGroundedEntryState::GetNotifyName_Implementation() const

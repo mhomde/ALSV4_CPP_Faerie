@@ -11,22 +11,16 @@
 #include "Character/Animation/ALSCharacterAnimInstance.h"
 
 void UALSNotifyStateOverlayOverride::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
-                                                 float TotalDuration)
+												 float TotalDuration)
 {
 	UALSCharacterAnimInstance* AnimInst = Cast<UALSCharacterAnimInstance>(MeshComp->GetAnimInstance());
-	if (AnimInst)
-	{
-		AnimInst->SetOverlayOverrideState(OverlayOverrideState);
-	}
+	if (AnimInst) { AnimInst->SetOverlayOverrideState(OverlayOverrideState); }
 }
 
 void UALSNotifyStateOverlayOverride::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
 	UALSCharacterAnimInstance* AnimInst = Cast<UALSCharacterAnimInstance>(MeshComp->GetAnimInstance());
-	if (AnimInst)
-	{
-		AnimInst->SetOverlayOverrideState(0);
-	}
+	if (AnimInst) { AnimInst->SetOverlayOverrideState(0); }
 }
 
 FString UALSNotifyStateOverlayOverride::GetNotifyName_Implementation() const

@@ -33,7 +33,10 @@ public:
 	AALSBaseCharacter(const FObjectInitializer& ObjectInitializer);
 
 	UFUNCTION(BlueprintCallable, Category= "Movement")
-	FORCEINLINE class UALSCharacterMovementComponent* GetMyMovementComponent() const { return MyCharacterMovementComponent; }
+	FORCEINLINE class UALSCharacterMovementComponent* GetMyMovementComponent() const
+	{
+		return MyCharacterMovementComponent;
+	}
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -43,14 +46,9 @@ public:
 
 	virtual void PostInitializeComponents() override;
 
-	virtual void NotifyHit(UPrimitiveComponent* MyComp,
-	                       AActor* Other,
-	                       UPrimitiveComponent* OtherComp,
-	                       bool bSelfMoved,
-	                       FVector HitLocation,
-	                       FVector HitNormal,
-	                       FVector NormalImpulse,
-	                       const FHitResult& Hit) override;
+	virtual void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved,
+						   FVector HitLocation, FVector HitNormal, FVector NormalImpulse,
+						   const FHitResult& Hit) override;
 
 	// We are overriding this to implement custom handling for flight logic.
 	virtual void AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce = false) override;
@@ -155,11 +153,11 @@ public:
 	/** Mantling*/
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "ALS|Character States")
 	void Server_MantleStart(float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS,
-	                        EALSMantleType MantleType);
+							EALSMantleType MantleType);
 
 	UFUNCTION(BlueprintCallable, NetMulticast, Reliable, Category = "ALS|Character States")
 	void Multicast_MantleStart(float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS,
-	                           EALSMantleType MantleType);
+							   EALSMantleType MantleType);
 
 	/** Ragdolling*/
 	UFUNCTION(BlueprintCallable, Category = "ALS|Character States")
@@ -401,19 +399,14 @@ protected:
 	bool FlightInterruptThresholdCheck() const;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "ALS|Flight")
-	bool FlightInterruptCustomCheck(UPrimitiveComponent* MyComp,
-	                                AActor* Other,
-	                                UPrimitiveComponent* OtherComp,
-	                                bool bSelfMoved,
-	                                FVector HitLocation,
-	                                FVector HitNormal,
-	                                FVector NormalImpulse,
-	                                const FHitResult& Hit);
+	bool FlightInterruptCustomCheck(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp,
+									bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse,
+									const FHitResult& Hit);
 
 	/** Mantle System */
 
 	virtual void MantleStart(float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS,
-	                         EALSMantleType MantleType);
+							 EALSMantleType MantleType);
 
 	virtual bool MantleCheck(const FALSMantleTraceSettings& TraceSettings);
 

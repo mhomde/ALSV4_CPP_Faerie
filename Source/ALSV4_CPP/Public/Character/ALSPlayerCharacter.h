@@ -6,8 +6,11 @@
 #include "Character/ALSBaseCharacter.h"
 #include "ALSPlayerCharacter.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FViewModeChangedSignature, class ACharacter*, Character, EALSViewMode,
-                                             PrevViewMode);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FViewModeChangedSignature,
+											 class ACharacter*,
+											 Character,
+											 EALSViewMode,
+											 PrevViewMode);
 
 /**
  * 

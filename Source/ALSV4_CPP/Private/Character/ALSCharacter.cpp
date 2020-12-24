@@ -32,39 +32,23 @@ void AALSCharacter::ClearHeldObject() const
 	SkeletalMesh->SetAnimInstanceClass(nullptr);
 }
 
-void AALSCharacter::AttachToHand(UStaticMesh* NewStaticMesh,
-                                 USkeletalMesh* NewSkeletalMesh,
-                                 UClass* NewAnimClass,
-                                 const bool bLeftHand,
-                                 const FVector Offset) const
+void AALSCharacter::AttachToHand(UStaticMesh* NewStaticMesh, USkeletalMesh* NewSkeletalMesh, UClass* NewAnimClass,
+								 const bool bLeftHand, const FVector Offset) const
 {
 	ClearHeldObject();
 
-	if (IsValid(NewStaticMesh))
-	{
-		StaticMesh->SetStaticMesh(NewStaticMesh);
-	}
+	if (IsValid(NewStaticMesh)) { StaticMesh->SetStaticMesh(NewStaticMesh); }
 	else if (IsValid(NewSkeletalMesh))
 	{
 		SkeletalMesh->SetSkeletalMesh(NewSkeletalMesh);
-		if (IsValid(NewAnimClass))
-		{
-			SkeletalMesh->SetAnimInstanceClass(NewAnimClass);
-		}
+		if (IsValid(NewAnimClass)) { SkeletalMesh->SetAnimInstanceClass(NewAnimClass); }
 	}
 
 	FName AttachBone;
-	if (bLeftHand)
-	{
-		AttachBone = TEXT("VB LHS_ik_hand_gun");
-	}
-	else
-	{
-		AttachBone = TEXT("VB RHS_ik_hand_gun");
-	}
+	if (bLeftHand) { AttachBone = TEXT("VB LHS_ik_hand_gun"); }
+	else { AttachBone = TEXT("VB RHS_ik_hand_gun"); }
 
-	HeldObjectRoot->AttachToComponent(GetMesh(),
-	                                  FAttachmentTransformRules::SnapToTargetNotIncludingScale, AttachBone);
+	HeldObjectRoot->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, AttachBone);
 	HeldObjectRoot->SetRelativeLocation(Offset);
 }
 
@@ -91,14 +75,11 @@ ECollisionChannel AALSCharacter::GetThirdPersonTraceParams(FVector& TraceOrigin,
 FTransform AALSCharacter::GetThirdPersonPivotTarget()
 {
 	return FTransform(GetActorRotation(),
-	                  (GetMesh()->GetSocketLocation(TEXT("Head")) + GetMesh()->GetSocketLocation(TEXT("root"))) / 2.0f,
-	                  FVector::OneVector);
+					  (GetMesh()->GetSocketLocation(TEXT("Head")) + GetMesh()->GetSocketLocation(TEXT("root"))) / 2.0f,
+					  FVector::OneVector);
 }
 
-FVector AALSCharacter::GetFirstPersonCameraTarget()
-{
-	return GetMesh()->GetSocketLocation(TEXT("FP_Camera"));
-}
+FVector AALSCharacter::GetFirstPersonCameraTarget() { return GetMesh()->GetSocketLocation(TEXT("FP_Camera")); }
 
 void AALSCharacter::OnOverlayStateChanged(const EALSOverlayState PreviousState)
 {
@@ -119,9 +100,8 @@ void AALSCharacter::BeginPlay()
 	UpdateHeldObject();
 }
 
-void AALSCharacter::MantleStart(const float MantleHeight,
-                                const FALSComponentAndTransform& MantleLedgeWS,
-                                const EALSMantleType MantleType)
+void AALSCharacter::MantleStart(const float MantleHeight, const FALSComponentAndTransform& MantleLedgeWS,
+								const EALSMantleType MantleType)
 {
 	Super::MantleStart(MantleHeight, MantleLedgeWS, MantleType);
 	if (MantleType != EALSMantleType::LowMantle)

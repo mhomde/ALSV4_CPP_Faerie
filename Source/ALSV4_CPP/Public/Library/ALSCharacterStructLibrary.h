@@ -184,14 +184,10 @@ struct FALSMovementSettings
 	{
 		switch (Gait)
 		{
-		case EALSGait::GaitNormal:
-			return NormalSpeed;
-		case EALSGait::GaitFast:
-			return FastSpeed;
-		case EALSGait::GaitSlow:
-			return SlowSpeed;
-		default:
-			return NormalSpeed;
+		case EALSGait::GaitNormal: return NormalSpeed;
+		case EALSGait::GaitFast: return FastSpeed;
+		case EALSGait::GaitSlow: return SlowSpeed;
+		default: return NormalSpeed;
 		}
 	}
 };
