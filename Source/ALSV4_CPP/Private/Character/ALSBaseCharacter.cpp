@@ -8,20 +8,20 @@
 
 #include "Character/ALSBaseCharacter.h"
 #include "ALS_Settings.h"
-#include "DrawDebugHelpers.h"
-#include "Character/ALSPlayerController.h"
 #include "Character/Animation/ALSCharacterAnimInstance.h"
 #include "Library/ALSMathLibrary.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/TimelineComponent.h"
 #include "Curves/CurveVector.h"
 #include "Curves/CurveFloat.h"
-#include "Character/ALSCharacterMovementComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
+#include "Character/ALSCharacterMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#if WITH_EDITOR
+#include "DrawDebugHelpers.h"
+#endif
 
 AALSBaseCharacter::AALSBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UALSCharacterMovementComponent>(CharacterMovementComponentName))
@@ -128,7 +128,7 @@ void AALSBaseCharacter::BeginPlay()
 	MantleTimeline->SetTimelineLengthMode(TL_TimelineLength);
 	MantleTimeline->AddInterpFloat(MantleTimelineCurve, TimelineUpdated);
 
-	// Make sure the mesh and animbp update after the CharacterBP to ensure it gets the most recent values.
+	// Make sure the mesh and AnimBP update after the CharacterBP to ensure it gets the most recent values.
 	GetMesh()->AddTickPrerequisiteActor(this);
 
 	// Set the Movement Model
@@ -219,7 +219,9 @@ void AALSBaseCharacter::Tick(const float DeltaTime)
 	PreviousVelocity = GetVelocity();
 	PreviousAimYaw = AimingRotation.Yaw;
 
-	DrawDebugSpheres();
+#if WITH_EDITOR
+	if (DrawDebug) DrawDebugSpheres();
+#endif
 }
 
 void AALSBaseCharacter::SetAimYawRate(const float NewAimYawRate)
@@ -450,7 +452,7 @@ bool AALSBaseCharacter::MantleCheckVault()
 	// Grab and cache the automatic trace settings.
 	FALSMantleTraceSettings MantleTrace = AutomaticTraceSettings;
 
-	// Adjust for seemless vaulting.
+	// Adjust for seamless vaulting.
 	MantleTrace.MinLedgeHeight = GetCharacterMovement()->MaxStepHeight; // Ensures that the autovault will always trigger at the height that stepping up cuts out.
 
 	// Attempt mantle.
@@ -564,7 +566,7 @@ float AALSBaseCharacter::GetAbsoluteAltitude() const { return GetActorLocation()
 
 float AALSBaseCharacter::GetAtmospherePressure() const
 {
-	// If AtmosphericPressureFalloff, then atmosphere falloff is considered disabled and will always return 1.
+	// If there is no curve, then atmosphere falloff is considered disabled and will always return 1.
 	if (!AtmosphericPressureFalloff) return 1;
 	return AtmosphericPressureFalloff->GetFloatValue(GetAbsoluteAltitude() / TroposphereHeight);
 }
@@ -614,7 +616,7 @@ void AALSBaseCharacter::SetActorLocationDuringRagdoll(const float DeltaTime)
 		if (!HasAuthority()) { Server_SetMeshLocationDuringRagdoll(TargetRagdollLocation); }
 	}
 
-	// Determine wether the ragdoll is facing up or down and set the target rotation accordingly.
+	// Determine whether the ragdoll is facing up or down and set the target rotation accordingly.
 	const FRotator PelvisRot = GetMesh()->GetSocketRotation(FName(TEXT("Pelvis")));
 
 	bRagdollFaceUp = PelvisRot.Roll < 0.0f;
@@ -923,7 +925,7 @@ void AALSBaseCharacter::UpdateFlightMovement(const float DeltaTime)
 	const float LocalTemperatureAffect = TemperatureAffect.Y;
 	const float LocalWeightAffect = WeightAffect.Y;
 
-	// @TODO Design a algorythm for calculating thrust, and use it to determine lift. modify autothrust with that so that the player slowly drifts down when too heavy. 
+	// @TODO Design an algorithm for calculating thrust, and use it to determine lift. modify auto-thrust with that so that the player slowly drifts down when too heavy. 
 
 	switch (FlightMode)
 	{
@@ -1183,7 +1185,7 @@ void AALSBaseCharacter::UpdateFlightRotation(const float DeltaTime)
 	// Map distant to ground to a unit scaler.
 	const float Alpha_Altitude = FMath::GetMappedRangeValueClamped({0.f, CheckAltitude}, {0.f, 1.f}, RelativeAltitude);
 
-	// Combine unit scalers equal to smaller.
+	// Combine unit scalars equal to smaller.
 	const float RotationAlpha = Alpha_Altitude * (SpeedCache / 3);
 
 	// Calculate input leaning.
@@ -1282,7 +1284,7 @@ void AALSBaseCharacter::MantleStart(const float MantleHeight, const FALSComponen
 	MantleTimeline->SetPlayRate(MantleParams.PlayRate);
 	MantleTimeline->PlayFromStart();
 
-	// Step 7: Play the Anim Montaget if valid.
+	// Step 7: Play the Anim Montage if valid.
 	if (IsValid(MantleParams.AnimMontage))
 	{
 		MainAnimInstance->Montage_Play(MantleParams.AnimMontage,
@@ -1309,8 +1311,10 @@ bool AALSBaseCharacter::MantleCheck(const FALSMantleTraceSettings& TraceSettings
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
-	DrawDebugLine(World, TraceStart, TraceEnd, FColor::Red, false, 1.f, 0, 3);
-
+#if WITH_EDITOR
+	if (DrawDebug) DrawDebugLine(World, TraceStart, TraceEnd, FColor::Red, false, 1.f, 0, 3);
+#endif
+	
 	FHitResult HitResult;
 	World->SweepSingleByChannel(HitResult,
 								TraceStart,
@@ -1343,8 +1347,10 @@ bool AALSBaseCharacter::MantleCheck(const FALSMantleTraceSettings& TraceSettings
 	FVector DownwardTraceStart = DownwardTraceEnd;
 	DownwardTraceStart.Z += TraceSettings.MaxLedgeHeight + TraceSettings.DownwardTraceRadius + 1.0f;
 
-	DrawDebugLine(World, DownwardTraceStart, DownwardTraceEnd, FColor::Blue, false, 1.f, 0, 3);
-
+#if WITH_EDITOR
+	if (DrawDebug) DrawDebugLine(World, DownwardTraceStart, DownwardTraceEnd, FColor::Blue, false, 1.f, 0, 3);
+#endif
+	
 	World->SweepSingleByChannel(HitResult,
 								DownwardTraceStart,
 								DownwardTraceEnd,
@@ -1392,7 +1398,7 @@ bool AALSBaseCharacter::MantleCheck(const FALSMantleTraceSettings& TraceSettings
 	return true;
 }
 
-// This function is called by "MantleTimeline" using BindUFunction in the AALSBaseCharacter::BeginPlay during the default settings initalization.
+// This function is called by "MantleTimeline" using BindUFunction in the AALSBaseCharacter::BeginPlay during the default settings initialization.
 void AALSBaseCharacter::MantleUpdate(const float BlendIn)
 {
 	// Step 1: Continually update the mantle target from the stored local transform to follow along with moving objects
@@ -1440,13 +1446,13 @@ void AALSBaseCharacter::MantleUpdate(const float BlendIn)
 		PositionAlpha);
 
 	// Initial Blend In (controlled in the timeline curve) to allow the actor to blend into the Position/Correction
-	// curve at the midoint. This prevents pops when mantling an object lower than the animated mantle.
+	// curve at the midpoint. This prevents pops when mantling an object lower than the animated mantle.
 	const FTransform& LerpedTarget = UKismetMathLibrary::TLerp(
 		UALSMathLibrary::TransfromAdd(MantleTarget, MantleActualStartOffset),
 		ResultLerp,
 		BlendIn);
 
-	// Step 4: Set the actors location and rotation to the Lerped Target.
+	// Step 4: Set the actors location and rotation to the lerped Target.
 	SetActorLocationAndTargetRotation(LerpedTarget.GetLocation(), LerpedTarget.GetRotation().Rotator());
 }
 
@@ -1505,7 +1511,7 @@ EALSGait AALSBaseCharacter::GetActualGait(const EALSGait AllowedGait) const
 {
 	// Get the Actual Gait. This is calculated by the actual movement of the character,  and so it can be different
 	// from the desired gait or allowed gait. For instance, if the Allowed Gait becomes walking,
-	// the Actual gait will still be running untill the character decelerates to the walking speed.
+	// the Actual gait will still be running until the character decelerates to the walking speed.
 
 	const float LocWalkSpeed = CurrentMovementSettings.SlowSpeed;
 	const float LocRunSpeed = CurrentMovementSettings.NormalSpeed;
@@ -1571,8 +1577,10 @@ float AALSBaseCharacter::FlightDistanceCheck(const float CheckDistance, const FV
 	const FVector CheckEnd = CheckStart + (Direction * CheckDistance);
 	World->LineTraceSingleByChannel(HitResult, CheckStart, CheckEnd, UALS_Settings::Get()->FlightCheckChannel, Params);
 
-	DrawDebugLine(World, CheckStart, CheckEnd, FColor::Silver, false, 0.5f, 0, 2);
-
+#if WITH_EDITOR
+	if (DrawDebug) DrawDebugLine(World, CheckStart, CheckEnd, FColor::Silver, false, 0.5f, 0, 2);
+#endif
+	
 	if (HitResult.bBlockingHit) { return HitResult.Distance; }
 	return CheckDistance;
 }
