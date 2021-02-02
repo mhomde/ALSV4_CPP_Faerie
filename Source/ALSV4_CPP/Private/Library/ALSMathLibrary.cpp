@@ -3,7 +3,7 @@
 // License:         MIT License (http://www.opensource.org/licenses/mit-license.php)
 // Source Code:     https://github.com/dyanikoglu/ALSV4_CPP
 // Original Author: Doğa Can Yanıkoğlu
-// Contributors:    
+// Contributors:
 
 
 #include "Library/ALSMathLibrary.h"
@@ -20,11 +20,11 @@ FTransform UALSMathLibrary::MantleComponentLocalToWorld(const FALSComponentAndTr
 	return {Quat, Location, Scale};
 }
 
-TPair<float, float> UALSMathLibrary::FixDiagonalGamepadValues(const float Y, const float X)
+TPair<float, float> UALSMathLibrary::FixDiagonalGamepadValues(const float X, const float Y)
 {
-	float ResultY = Y * FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 0.6f), FVector2D(1.0f, 1.2f), FMath::Abs(X));
+	float ResultY = X * FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 0.6f), FVector2D(1.0f, 1.2f), FMath::Abs(Y));
 	ResultY = FMath::Clamp(ResultY, -1.0f, 1.0f);
-	float ResultX = X * FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 0.6f), FVector2D(1.0f, 1.2f), FMath::Abs(Y));
+	float ResultX = Y * FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 0.6f), FVector2D(1.0f, 1.2f), FMath::Abs(X));
 	ResultX = FMath::Clamp(ResultX, -1.0f, 1.0f);
 	return TPair<float, float>(ResultY, ResultX);
 }

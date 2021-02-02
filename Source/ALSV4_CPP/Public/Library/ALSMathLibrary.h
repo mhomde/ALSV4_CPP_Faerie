@@ -3,7 +3,7 @@
 // License:         MIT License (http://www.opensource.org/licenses/mit-license.php)
 // Source Code:     https://github.com/dyanikoglu/ALSV4_CPP
 // Original Author: Doğa Can Yanıkoğlu
-// Contributors:    
+// Contributors:
 
 
 #pragma once
@@ -27,7 +27,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ALS Math")
 	static FTransform MantleComponentLocalToWorld(const FALSComponentAndTransform& CompAndTransform);
 
-	static TPair<float, float> FixDiagonalGamepadValues(float Y, float X);
+	static TPair<float, float> FixDiagonalGamepadValues(float X, float Y);
 
 	UFUNCTION(BlueprintCallable, Category = "ALS Math")
 	static FTransform TransfromSub(const FTransform& T1, const FTransform& T2)

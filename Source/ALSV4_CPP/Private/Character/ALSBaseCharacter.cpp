@@ -91,6 +91,7 @@ void AALSBaseCharacter::AddMovementInput(FVector WorldDirection, const float Sca
 {
 	if (GetCharacterMovement()->MovementMode == MOVE_Flying)
 	{
+		// Prevent the player from flying above world max height.
 		if (WorldDirection.Z > 0.0f) { WorldDirection.Z *= GetAtmospherePressure(); }
 	}
 	Super::AddMovementInput(WorldDirection, ScaleValue, bForce);
@@ -925,7 +926,7 @@ void AALSBaseCharacter::UpdateFlightMovement(const float DeltaTime)
 	const float LocalTemperatureAffect = TemperatureAffect.Y;
 	const float LocalWeightAffect = WeightAffect.Y;
 
-	// @TODO Design an algorithm for calculating thrust, and use it to determine lift. modify auto-thrust with that so that the player slowly drifts down when too heavy. 
+	// @TODO Design an algorithm for calculating thrust, and use it to determine lift. modify auto-thrust with that so that the player slowly drifts down when too heavy.
 
 	switch (FlightMode)
 	{
@@ -935,7 +936,7 @@ void AALSBaseCharacter::UpdateFlightMovement(const float DeltaTime)
 	case EALSFlightMode::Raising: AutoHover = (GroundPressure + FlightStrengthActive) * LocalTemperatureAffect * (
 			LocalWeightAffect * 1.5);
 		break;
-	case EALSFlightMode::Lowering: AutoHover = GroundPressure * 0.5f + (-FlightStrengthActive + (LocalTemperatureAffect
+	case EALSFlightMode::Lowering: AutoHover = (GroundPressure * 0.5f) + (-FlightStrengthActive + (LocalTemperatureAffect
 			- 1)) + -LocalWeightAffect;
 		break;
 	case EALSFlightMode::Hovering: AutoHover = (GroundPressure + 0.5) / 1.5 * LocalTemperatureAffect * (
@@ -1314,7 +1315,7 @@ bool AALSBaseCharacter::MantleCheck(const FALSMantleTraceSettings& TraceSettings
 #if WITH_EDITOR
 	if (DrawDebug) DrawDebugLine(World, TraceStart, TraceEnd, FColor::Red, false, 1.f, 0, 3);
 #endif
-	
+
 	FHitResult HitResult;
 	World->SweepSingleByChannel(HitResult,
 								TraceStart,
@@ -1350,7 +1351,7 @@ bool AALSBaseCharacter::MantleCheck(const FALSMantleTraceSettings& TraceSettings
 #if WITH_EDITOR
 	if (DrawDebug) DrawDebugLine(World, DownwardTraceStart, DownwardTraceEnd, FColor::Blue, false, 1.f, 0, 3);
 #endif
-	
+
 	World->SweepSingleByChannel(HitResult,
 								DownwardTraceStart,
 								DownwardTraceEnd,
@@ -1580,7 +1581,7 @@ float AALSBaseCharacter::FlightDistanceCheck(const float CheckDistance, const FV
 #if WITH_EDITOR
 	if (DrawDebug) DrawDebugLine(World, CheckStart, CheckEnd, FColor::Silver, false, 0.5f, 0, 2);
 #endif
-	
+
 	if (HitResult.bBlockingHit) { return HitResult.Distance; }
 	return CheckDistance;
 }

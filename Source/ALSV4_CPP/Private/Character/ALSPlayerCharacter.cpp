@@ -193,7 +193,7 @@ void AALSPlayerCharacter::Input_Aim_Release()
 	else if (ViewMode == EALSViewMode::FirstPerson) { SetRotationMode(EALSRotationMode::LookingDirection); }
 }
 
-void AALSPlayerCharacter::Camera_Action()
+void AALSPlayerCharacter::Input_Camera_Action()
 {
 	UWorld* World = GetWorld();
 	check(World);
@@ -205,7 +205,7 @@ void AALSPlayerCharacter::Camera_Action()
 									false);
 }
 
-void AALSPlayerCharacter::Camera_Action_Release()
+void AALSPlayerCharacter::Input_Camera_Action_Release()
 {
 	if (ViewMode == EALSViewMode::FirstPerson) { return; } // Don't swap shoulders on first person mode
 
