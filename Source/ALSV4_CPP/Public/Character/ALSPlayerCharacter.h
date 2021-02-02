@@ -137,16 +137,7 @@ protected:
 	/** Input */
 
 	// Cache the settings value for input axes.
-	FName InputX, InputY, InputZ, CameraPitch, CameraRoll, CameraYaw;
-
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|Input", BlueprintReadOnly)
-	float LookPitchRate = 1.25f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|Input", BlueprintReadOnly)
-	float LookYawRate = 1.25f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|Input", BlueprintReadOnly)
-	float LookRollRate = 1.25f;
+	FName InputX, InputY, InputZ;
 
 	UPROPERTY(EditDefaultsOnly, Category = "ALS|Input", BlueprintReadOnly)
 	float RollDoubleTapTimeout = 0.3f;

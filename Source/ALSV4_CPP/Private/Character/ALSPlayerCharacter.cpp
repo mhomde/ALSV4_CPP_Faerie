@@ -17,9 +17,6 @@ AALSPlayerCharacter::AALSPlayerCharacter(const FObjectInitializer& ObjectInitial
 	InputX = ALS_Settings->X_Axis_Input;
 	InputY = ALS_Settings->Y_Axis_Input;
 	InputZ = ALS_Settings->Z_Axis_Input;
-	CameraPitch = ALS_Settings->Pitch_Input;
-	CameraYaw = ALS_Settings->Yaw_Input;
-	CameraRoll = ALS_Settings->Roll_Input;
 }
 
 void AALSPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -35,9 +32,6 @@ void AALSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	PlayerInputComponent->BindAxis(InputX, this, &AALSPlayerCharacter::MovementInput_X);
 	PlayerInputComponent->BindAxis(InputY, this, &AALSPlayerCharacter::MovementInput_Y);
 	PlayerInputComponent->BindAxis(InputZ, this, &AALSPlayerCharacter::MovementInput_Z);
-	PlayerInputComponent->BindAxis(CameraPitch, this, &AALSPlayerCharacter::CameraPitchInput);
-	PlayerInputComponent->BindAxis(CameraYaw, this, &AALSPlayerCharacter::CameraYawInput);
-	PlayerInputComponent->BindAxis(CameraRoll, this, &AALSPlayerCharacter::CameraRollInput);
 }
 
 void AALSPlayerCharacter::BeginPlay()
@@ -139,12 +133,6 @@ void AALSPlayerCharacter::MovementInput_Z(const float Value)
 	const FRotator DirRotator(0.0f, AimingRotation.Yaw, 0.0f);
 	AddMovementInput(UKismetMathLibrary::GetUpVector(DirRotator), Value);
 }
-
-void AALSPlayerCharacter::CameraPitchInput(const float Value) { AddControllerPitchInput(LookPitchRate * Value); }
-
-void AALSPlayerCharacter::CameraYawInput(const float Value) { AddControllerYawInput(LookYawRate * Value); }
-
-void AALSPlayerCharacter::CameraRollInput(const float Value) { AddControllerRollInput(LookRollRate * Value); }
 
 void AALSPlayerCharacter::Input_Jump()
 {
