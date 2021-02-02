@@ -19,9 +19,6 @@ class ALSV4_CPP_API AALSPlayerCharacter : public AALSBaseCharacter
 	GENERATED_BODY()
 
 public:
-	AALSPlayerCharacter(const FObjectInitializer& ObjectInitializer);
-
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	virtual void BeginPlay() override;
 
@@ -135,18 +132,6 @@ protected:
 	EALSViewMode ViewMode = EALSViewMode::ThirdPerson;
 
 	/** Input */
-
-	// Cache the settings value for input axes.
-	FName InputX, InputY, InputZ, CameraPitch, CameraRoll, CameraYaw;
-
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|Input", BlueprintReadOnly)
-	float LookPitchRate = 1.25f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|Input", BlueprintReadOnly)
-	float LookYawRate = 1.25f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "ALS|Input", BlueprintReadOnly)
-	float LookRollRate = 1.25f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "ALS|Input", BlueprintReadOnly)
 	float RollDoubleTapTimeout = 0.3f;

@@ -231,6 +231,12 @@ void AALSBaseCharacter::SetAimYawRate(const float NewAimYawRate)
 	MainAnimInstance->GetCharacterInformationMutable().AimYawRate = AimYawRate;
 }
 
+FVector AALSBaseCharacter::GetLocalInputDirection_Implementation() const
+{
+	checkf(false, TEXT("You must override GetLocalInputDirection"));
+	return FVector();
+}
+
 void AALSBaseCharacter::RagdollStart()
 {
 	/**

@@ -331,6 +331,12 @@ public:
 	void SetAimYawRate(float NewAimYawRate);
 
 protected:
+
+	// Get the desired local space unit vector of the controller. This is required for mantling, as the check uses the
+	// for forward
+	UFUNCTION(BlueprintNativeEvent, Category = "ALS|Input")
+	FVector GetLocalInputDirection() const;
+	
 	/** Ragdoll System */
 
 	void RagdollUpdate(float DeltaTime);
