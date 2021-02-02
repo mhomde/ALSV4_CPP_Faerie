@@ -7,13 +7,11 @@
 #include "ALSPlayerCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FViewModeChangedSignature,
-											 class ACharacter*,
-											 Character,
-											 EALSViewMode,
-											 PrevViewMode);
+											 class ACharacter*, Character,
+											 EALSViewMode, PrevViewMode);
 
 /**
- * 
+ *
  */
 UCLASS()
 class ALSV4_CPP_API AALSPlayerCharacter : public AALSBaseCharacter
@@ -85,19 +83,10 @@ protected:
 	void Input_Aim_Release();
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
-	void CameraPitchInput(float Value);
+	void Input_Camera_Action();
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
-	void CameraYawInput(float Value);
-
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void CameraRollInput(float Value);
-
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void Camera_Action();
-
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void Camera_Action_Release();
+	void Input_Camera_Action_Release();
 
 	void OnSwitchCameraMode();
 
